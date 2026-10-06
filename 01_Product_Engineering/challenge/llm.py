@@ -11,7 +11,7 @@ That property matters more than it looks like it does right now -- see the
 import json
 import os
 
-from litellm import completion
+from litellm import completion, token_counter
 
 # LiteLLM picks the provider from the model string:
 #   "gpt-4.1-mini"                    -> OpenAI
@@ -29,8 +29,8 @@ SYSTEM_PROMPT = os.getenv(
 )
 
 
-def stream_reply(message: str, history: list[dict] | None = None):
-    """Yield the assistant's reply as it arrives, one growing string at a time.
+def build_messages(message: str, history: list[dict] | None = None) -> list[dict]:
+    """The exact message list one turn sends: system prompt, history, new message.
 
     `history` is a list of {"role": ..., "content": ...} dicts. We rebuild the
     full message list on every turn -- the model is stateless, so the
@@ -39,6 +39,23 @@ def stream_reply(message: str, history: list[dict] | None = None):
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
     messages.extend(history or [])
     messages.append({"role": "user", "content": message})
+    return messages
+
+
+def count_tokens(message: str, history: list[dict] | None = None) -> int:
+    """How many prompt tokens this turn will send, counted locally.
+
+    Counts the same list `stream_reply` sends, so the system prompt and history
+    are included -- they are usually most of the bill. LiteLLM picks the
+    tokenizer for MODEL; for models it doesn't recognise (self-hosted, some
+    gateways) it falls back to a generic one, so treat that as an estimate.
+    """
+    return token_counter(model=MODEL, messages=build_messages(message, history))
+
+
+def stream_reply(message: str, history: list[dict] | None = None):
+    """Yield the assistant's reply as it arrives, one growing string at a time."""
+    messages = build_messages(message, history)
 
     kwargs = {"model": MODEL, "messages": messages, "stream": True}
     if API_BASE:

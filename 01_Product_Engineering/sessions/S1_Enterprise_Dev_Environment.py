@@ -320,6 +320,7 @@ def _(mo):
     explain what the issuer column predicts that the status column cannot.
 
     **Answer:**
+    The status only tells us that we were able to connect to the host. The certificate issuer can show whether the connection is using the expected public certificate authority or is being intercepted and re-signed by a company proxy.
     """)
     return
 
@@ -334,6 +335,7 @@ def _(mo):
     about what a byte-comparison gate is actually able to promise.
 
     **Answer:**
+    make check, check for whether the .py and .ipynb matches for bite-by-bite. As its said in earler cells it cannot gaurantee the code runs successfully. make check confirms file synchronization, not run time info.
     """)
     return
 
@@ -515,6 +517,7 @@ def _(mo):
     rewrite if the code had called a vendor SDK directly.
 
     **Answer:**
+    If vendor specific, we would have to write vendor specific client, authentication and API_call code to work with internal gateway.
     """)
     return
 
@@ -530,6 +533,7 @@ def _(mo):
     `/clear` a better test than simply continuing the conversation?
 
     **Answer:**
+    if it went to old behaviour then rule did not survice, I mean claude did not update claude.md config file. /clear is better because it is removing the previous conversation context. So the behaviour should come from claude.md and if rule updated new behaviour, if not old behaviour.
     """)
     return
 

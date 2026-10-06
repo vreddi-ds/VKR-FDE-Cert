@@ -244,6 +244,8 @@ wants a field the schema does not have, that is a Step 5 change first.
 - Simplicity and readability over cleverness.
 - Prefer the standard library and explicit code over a new dependency.
 - Comments explain *why*, not *what*.
+- Helper docstrings should explain why the helper exists, not restate what the
+  function name already says.
 - Keep `llm.py` provider-agnostic. Anything vendor-specific belongs in config.
 - Do not add authentication, databases, or a frontend framework unless asked.
   Week 1 is deliberately small.
