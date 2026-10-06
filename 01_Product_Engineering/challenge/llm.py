@@ -53,6 +53,16 @@ def count_tokens(message: str, history: list[dict] | None = None) -> int:
     return token_counter(model=MODEL, messages=build_messages(message, history))
 
 
+def current_model() -> str:
+    """Lets the UI and logs show which model answered without importing a constant.
+
+    The value comes from LLM_MODEL when the process starts, so after changing
+    .env you have to restart the app (or container) before this returns the new
+    model.
+    """
+    return MODEL
+
+
 def stream_reply(message: str, history: list[dict] | None = None):
     """Yield the assistant's reply as it arrives, one growing string at a time."""
     messages = build_messages(message, history)
