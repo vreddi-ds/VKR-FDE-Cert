@@ -74,7 +74,7 @@ Mainframe Abend Research Assistant (MARA) is an evidence-grounded research and d
 
 | | |
 | --- | --- |
-| **In** | The Level 1 Production Support Engineer provides the failed batch job name, failure date, abend code, and one or more relevant JES error messages from the Operations email notification. MARA uses this information to investigate the failure against its available knowledge base. |
+| **In** | The Level 1 Production Support Engineer provides three required inputs from the Operations notification: failed batch job name, failure date, and abend code. The engineer may optionally include one or more relevant JES error messages to provide additional investigation context. MARA uses these inputs to narrow its search and investigate the failure against its available knowledge base. |
 | **Out** | MARA generates a structured investigation report containing the failure summary, probable root cause, evidence and historical findings (including references to relevant JES messages, runbooks, knowledge base articles, and previous incidents), confidence level, recommended next steps, and investigation status. When sufficient evidence is unavailable, MARA explicitly reports "Insufficient Evidence" and identifies the additional information or escalation needed. Final remediation and restart decisions remain with the Production Support Engineer. |
 
 ---
