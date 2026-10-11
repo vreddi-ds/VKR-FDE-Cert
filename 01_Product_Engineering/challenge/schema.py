@@ -64,13 +64,31 @@ def solve(request: Request) -> Response:
 ## print(Request.model_fields["job_name"].is_required()) 
 ## Expected output TRUE/FALSE
 
-## Basic response test...I can't ask the model every time, so documenting here for future use.
-# uv run python -c "from schema import Response; r = Response(failure_summary='Synthetic job PAYAUT12 failed with S806', 
+## Request class test...
+#1. uv run python -c "from schema import Request; print(Request.model_json_schema())" - schema test to make sure Pydantic recorgnized
+# the input fields.
+#2. uv run python -c "from schema import Request; r = Request(job_name='PAYAUT12', failure_date='2026-10-10', abend_code='S806'); 
+# print(r.model_dump_json(indent=2))" - Positive validation: supplied three required fields and omitted the optional filed.
+#3. uv run python -c "from schema import Request; Request(job_name='PAYAUT12')" - supplied only one required field. Pydantic notfied
+# about missing required fields.
+
+## Response class test...I can't ask the model every time, so documenting here for future use.
+#1. JSON Schema validation: uv run python -c "import json; from schema import Response; print(json.dumps(Response.model_json_schema(), indent=2))"
+
+#2. +ve Response validation: uv run python -c "from schema import Response; r = Response(failure_summary='Synthetic job PAYAUT12 failed with S806', 
 # probable_root_cause=None, confidence_level='NOT_ASSESSED', recommended_next_steps=['Escalate to SME'], 
 # investigation_status='INSUFFICIENT_EVIDENCE'); print(r.model_dump_json(indent=2))"
+
+#3. -Ve test: to raise a validation error when in violation with contract field requirements like min_length or zero items etc.,
+# uv run python -c "from schema import Response; Response(failure_summary='Synthetic job failure', confidence_level='HIGH', 
+# recommended_next_steps=[], investigation_status='COMPLETED_RESEARCH')"
 
 ## Need to test....
 ## When investigation_status is INSUFFICIENT_EVIDENCE:
 ## - probable_root_cause should be None.
 ## - confidence_level should be NOT_ASSESSED.
 ## - recommended_next_steps should include SME escalation.
+
+## Module Import test: to confirm that the module could be imported
+# uv run python -c "import schema"
+#
