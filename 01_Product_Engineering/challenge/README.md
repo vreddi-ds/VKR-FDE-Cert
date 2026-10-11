@@ -448,6 +448,10 @@ later, from generation seeded by these.
 > will not go away, and finding it now is much cheaper than a stakeholder
 > finding it in a demo. Put it in the file with `"why": "unresolved — ..."`.
 
+**TC1 Step 7 — Golden Examples:** 
+Example 4 (`PAYLOAD22`, S806) is the **edge case** involving conflicting evidence; 
+Example 5 (`PAYBATCH45`, S0C7) is the **decline case** involving unavailable JES diagnostics and insufficient evidence to determine the root cause.
+
 ### ✅ Deliverables
 
 1. **`use_case/evals/golden.jsonl`** — five lines, no `REPLACE ME` left,
