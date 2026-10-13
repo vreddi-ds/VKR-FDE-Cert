@@ -31,9 +31,55 @@ put real hostnames, IPs, or architecture diagrams in this file.
 | 7 | Who approves a deployment, and what review does it need? | <!-- --> |
 | 8 | Is there an approved internal LLM endpoint already? | <!-- --> |
 
+### TC1 Step 10 — FIS Total Issuing Solutions Deployment Research
+
+**Research date:** October 13, 2026
+
+**Method:** Public research. Internal stakeholder consultation pending.
+
+**Organizational context**
+
+FIS acquired Global Payments' Issuer Solutions business, formerly TSYS, in January 2026. The business is now branded FIS Total Issuing Solutions.
+
+Because of the acquisition and ongoing integration, I have not yet identified the team responsible for deploying new internal applications for our division.
+
+**Public findings**
+
+- FIS describes Total Issuing Solutions as supporting cloud-native and API-first issuing technology.
+- FIS has announced an enterprise AI partnership with Anthropic, including work involving forward-deployed engineers.
+- These announcements suggest potential enterprise deployment and AI capabilities, but they do not establish the approved hosting environment for MARA.
+
+**Information still requiring internal confirmation**
+
+- Application hosting platform and cloud provider
+- Approved container registry
+- Employee authentication and SSO
+- External LLM API connectivity
+- Secrets management
+- Deployment approvals and security reviews
+- Availability of an approved enterprise LLM gateway
+
+**Planned contact**
+
+Platform Engineering Lead or Cloud Infrastructure Architect supporting FIS Total Issuing Solutions. Contact not yet identified.
+
+**Sources**
+
+- https://www.fisglobal.com/about-us/media-room/press-release/2026/fis-completes-strategic-acquisition-of-global-payments-issuer-solutions-business
+- https://www.fisglobal.com/products/total-issuing
+- https://www.investor.fisglobal.com/news-releases/news-release-details/fis-brings-agentic-ai-banking-anthropic-starting-financial
+
+**Next action**
+
+Identify the deployment owner, send the prepared infrastructure questionnaire, and update this document with verified answers. I will not publish confidential internal infrastructure details.
+
 **What surprised you?**
 
-<!-- your answer here -->
+It is an interesting coincidence that I independently purchased Anthropic API credits to build MARA using Claude, while FIS had already announced its partnership with Anthropic around April/May 2026, including collaboration with Forward-Deployed Engineers (FDEs).
+
+What makes this even more interesting is that I am currently going through the FDE bootcamp and building MARA as my use case.
+
+This makes me curious whether MARA could eventually leverage FIS's existing Anthropic partnership and approved enterprise AI platform rather than connecting directly to the Anthropic API. I would like to explore this further with our internal AI and Platform Engineering teams.
 
 **What would you have to change about your app to deploy there?**
 

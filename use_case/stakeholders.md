@@ -29,3 +29,20 @@ them:
 
 If a week goes by with no conversation, add a row saying so and why. A visible
 gap is more useful than a silent one.
+
+## TC1 Step 10 — Deployment Stakeholder
+**Date:** October 13, 2026
+
+**Organization:** FIS Total Issuing Solutions
+
+**Target contact:** Platform Engineering Lead or Cloud Infrastructure Architect responsible for internal application deployments.
+
+**Contact status:** Not yet identified.
+
+**Reason for contact:** To determine the approved deployment architecture for MARA, including container hosting, cloud infrastructure, authentication, secrets management, network access, and LLM connectivity.
+
+**Current situation:** Following the acquisition of the former TSYS issuing business by FIS, I need to identify the appropriate infrastructure owner for the organization.
+
+**Next action:** Identify the correct contact through management or the internal Platform Engineering team and send the prepared eight-question deployment questionnaire.
+
+**Interview status:** Pending. No internal deployment information has been verified through a stakeholder interview.
