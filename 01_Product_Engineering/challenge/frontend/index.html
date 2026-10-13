@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <!-- Rename this. It is your app. -->
-    <title>Your AI Application</title>
+    <title>MARA — Mainframe Abend Research Assistant</title>
     <style>
       body {
         font-family: system-ui, sans-serif;
@@ -27,14 +27,128 @@
       form { display: flex; gap: 0.5rem; }
       input { flex: 1; padding: 0.5rem; font: inherit; }
       button { padding: 0.5rem 1rem; font: inherit; }
+
+      /* MARA investigation form layout */
+      /* Display the first three MARA input fields on one row */
+      #investigation-form {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      /* Keep the JES messages box full width */
+      /* JES Messages occupies the full second row */
+      #investigation-form > div:nth-child(4) {
+        grid-column: 1 / -1;
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        gap: 0.4rem;
+      }
+
+      #jes-messages {
+        display: block;
+        width: 100%;
+        min-height: 140px;
+        box-sizing: border-box;
+        resize: vertical;
+      }
+
+      /* Keep the submit button below the fields */
+      #investigation-form > button {
+        grid-column: 1 / -1;
+      }
+
+      /* Stack fields on smaller screens */
+      @media (max-width: 600px) {
+        #investigation-form {
+          grid-template-columns: 1fr;
+        }
+      }
+      /* Temporarily hiding the original generic chat interface.
+       Keeping the code available for future use. */
+      #log,
+      #form {
+        display: none;
+      }
+      /* MARA investigation report styling */
+      /* MARA report title */
+      #investigation-result .report-title {
+        text-align: center;
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 24px;
+      }
+
+      /* MARA report section headings */
+      #investigation-result .report-heading {
+        font-weight: bold;
+        margin-top: 20px;
+        margin-bottom: 6px;
+      }
+      /* Keep the configured model close to the MARA title */
+      h1 {
+        margin-bottom: 4px;
+      }
+
+      #model-indicator {
+        margin-top: 0;
+        margin-bottom: 20px;
+        font-size: 14px;
+        color: #555;
+      }
+      #investigation-result .confidence-explanation {
+        font-size: 12px;
+        color: #666;
+        font-style: italic;
+      }
     </style>
   </head>
   <body>
-    <h1>Your AI Application</h1>
-    <p>
-      This is a deliberately plain frontend. Making it good is your job — open
-      this file in VS Code and point Claude Code at it.
+    <h1>MARA — Mainframe Abend Research Assistant</h1>
+    <!-- Display the configured LLM dynamically -->
+    <p id="model-indicator">
+      <strong>Configured LLM:</strong>
+      <span id="model-name">Loading...</span>
     </p>
+    <p>
+      MARA helps Level 1 Production Support Engineers investigate mainframe batch
+      job abends using JES diagnostic messages. It provides evidence-based findings,
+      confidence levels, and recommended next steps.
+      All investigations require human review before recovery actions.
+    </p>
+
+    <section id="mara-investigation">
+      <h2>Batch Abend Investigation</h2>
+
+      <form id="investigation-form">
+        <div>
+          <label for="job-name">Job Name</label>
+          <input id="job-name" type="text" placeholder="PAYBATCH45" required />
+        </div>
+
+        <div>
+          <label for="failure-date">Failure Date (MM/DD/YYYY)</label>
+          <input id="failure-date" type="text" placeholder="10/10/2026" required />
+        </div>
+
+        <div>
+          <label for="abend-code">Abend Code</label>
+          <input id="abend-code" type="text" placeholder="S0C7" required />
+        </div>
+
+        <div>
+          <label for="jes-messages">JES Messages (Optional)</label>
+          <textarea id="jes-messages" rows="5"
+            placeholder="Enter synthetic JES messages, one per line"></textarea>
+        </div>
+
+        <button type="submit">Investigate Abend</button>
+      </form>
+
+      <h3>Investigation Results</h3>
+      <pre id="investigation-result">No investigation submitted yet.</pre>
+</section>
 
     <div id="log"></div>
     <form id="form">
@@ -50,9 +164,171 @@
       import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/dist/index.min.js";
 
       const client = await Client.connect(window.location.origin);
+      // Display the model configured in MARA's backend.
+      async function loadModelName() {
+        const modelName = document.getElementById("model-name");
+
+        try {
+          const response = await fetch("/health");
+
+          if (!response.ok) {
+            throw new Error("Health endpoint unavailable");
+          }
+
+          const data = await response.json();
+          modelName.textContent = data.model ?? "Not configured";
+
+        } catch (error) {
+          modelName.textContent = "Unavailable";
+          console.error("Could not retrieve model name:", error);
+        }
+      }
+
+      loadModelName();
+
       const log = document.getElementById("log");
       const form = document.getElementById("form");
       const input = document.getElementById("input");
+
+      // MARA batch investigation form elements
+      const investigationForm = document.getElementById("investigation-form");
+      const jobNameInput = document.getElementById("job-name");
+      const failureDateInput = document.getElementById("failure-date");
+      const abendCodeInput = document.getElementById("abend-code");
+      const jesMessagesInput = document.getElementById("jes-messages");
+      const investigationResult = document.getElementById("investigation-result");
+
+      // Format the six MARA response fields as a readable report.
+      function formatInvestigationReport(report) {
+        const findings = report.evidence_and_historical_findings.length
+          ? report.evidence_and_historical_findings.map(
+              (item, index) => `${index + 1}. ${item}`
+            ).join("\n")
+          : "No supporting evidence available.";
+
+        const nextSteps = report.recommended_next_steps.map(
+          (item, index) => `${index + 1}. ${item}`
+        ).join("\n");
+
+          return [
+            "MARA INVESTIGATION REPORT",
+            "",
+            "INVESTIGATION STATUS",
+            report.investigation_status,
+            "",
+            "FAILURE SUMMARY",
+            report.failure_summary,
+            "",
+            "PROBABLE ROOT CAUSE",
+            report.probable_root_cause ?? "Not determined — insufficient evidence.",
+            "",
+            "ROOT CAUSE CONFIDENCE LEVEL",
+            report.confidence_level,
+            "Confidence reflects how strongly the available evidence supports the probable root cause, not the recommended next steps.",
+            "",
+            "EVIDENCE & HISTORICAL FINDINGS",
+            findings,
+            "",
+            "RECOMMENDED NEXT STEPS",
+            nextSteps,
+            "",
+            "Human review and authorization are required before recovery actions."
+          ].join("\n");
+      }
+
+      // Handle MARA batch abend investigation submissions.
+      investigationForm.addEventListener("submit", async (event) => {
+        event.preventDefault(); // Prevent the browser from reloading the page.
+
+        investigationResult.textContent = "MARA is investigating...";
+
+        try {
+          // Read and validate the values supplied by the engineer.
+          const job_name = jobNameInput.value.trim();
+          const failure_date = convertDateToISO(failureDateInput.value);
+          const abend_code = abendCodeInput.value.trim().toUpperCase();
+
+          // Convert each non-empty JES message line into a list item.
+          const jes_messages = jesMessagesInput.value
+            .split(/\r?\n/)
+            .map(line => line.trim())
+            .filter(line => line.length > 0);
+
+          // Call MARA's Gradio endpoint.
+          const result = await client.predict("/research_mainframe_batch_abend", {
+            job_name,
+            failure_date,
+            abend_code,
+            jes_messages
+          });
+
+          // The API returns a JSON string as its first output.
+          const report = JSON.parse(result.data[0]);
+
+          // TEMPORARY DEBUG: Inspect the raw MARA API response.
+          // console.log("MARA API Response:", report);
+          // console.log(
+          //   "Historical Findings:",
+          //   report.evidence_and_historical_findings
+          // );
+
+          // Display the six-field investigation report.
+          //investigationResult.textContent = JSON.stringify(report, null, 2);
+          const formattedReport = formatInvestigationReport(report);
+
+          investigationResult.replaceChildren();
+
+          formattedReport.split("\n").forEach((line, index) => {
+            const div = document.createElement("div");
+
+            if (index === 0) {
+              div.className = "report-title";
+            } else if ([
+              "INVESTIGATION STATUS",
+              "FAILURE SUMMARY",
+              "PROBABLE ROOT CAUSE",
+              "ROOT CAUSE CONFIDENCE LEVEL",
+              "EVIDENCE & HISTORICAL FINDINGS",
+              "RECOMMENDED NEXT STEPS"
+            ].includes(line)) {
+              div.className = "report-heading";
+            }
+
+            div.textContent = line;
+            if (line.startsWith("Confidence reflects how strongly")) {
+              div.className = "confidence-explanation";
+            }
+            investigationResult.appendChild(div);
+          });
+        } catch (error) {
+          // Display errors instead of silently failing.
+          investigationResult.textContent =
+            `Investigation failed: ${error.message}`;
+        }
+      });
+      // Validate the US date format and convert it to ISO for Pydantic.
+      // Example: 10/10/2026 becomes 2026-10-10.
+      function convertDateToISO(dateText) {
+        const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(dateText.trim());
+
+        if (!match) {
+          throw new Error("Enter the failure date in MM/DD/YYYY format.");
+        }
+
+        const [, month, day, year] = match;
+        const date = new Date(Date.UTC(Number(year), Number(month) - 1, Number(day)));
+
+        // Reject invalid dates such as 02/30/2026.
+        if (
+          date.getUTCFullYear() !== Number(year) ||
+          date.getUTCMonth() + 1 !== Number(month) ||
+          date.getUTCDate() !== Number(day)
+        ) {
+          throw new Error("Enter a valid calendar date.");
+        }
+
+        return `${year}-${month}-${day}`;
+      }
 
       // The model has no memory. This array is the entire conversation.
       const history = [];

@@ -12,6 +12,7 @@ from fastapi.responses import HTMLResponse
 from gradio import Server
 
 from llm import stream_reply
+from schema import Request, solve
 
 app = Server()
 
@@ -28,6 +29,30 @@ def chat(message: str, history: list | None = None) -> str:
     """Stream a reply to one user message."""
     yield from stream_reply(message, history)
 
+# MARA's new Gradio endpoint
+@app.api(name="research_mainframe_batch_abend")
+def research_mainframe_batch_abend(
+    job_name: str,
+    failure_date: str,
+    abend_code: str,
+    jes_messages: list[str] | None = None,
+) -> str: # Required return annotation for this Gradio API and it returns a string
+    """Research a mainframe batch job abend and return a structured investigation report."""
+
+    # Validate incoming API parameters against MARA's Request schema.
+    request = Request(
+        job_name=job_name,
+        failure_date=failure_date,
+        abend_code=abend_code,
+        jes_messages=jes_messages if jes_messages is not None else []
+    )
+
+    # Run MARA's investigation using the validated request.
+    report = solve(request)
+
+    # Return the structured investigation report
+    # Convert the validated Pydantic Response to a JSON string.
+    return report.model_dump_json()
 
 # --- The frontend ------------------------------------------------------------
 # Defining a route at "/" replaces Gradio's default UI with ours.
