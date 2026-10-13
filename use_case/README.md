@@ -99,3 +99,27 @@ An AI agent could choose this endpoint when a Level 1 Production Support Enginee
 The endpoint accepts job details and JES messages and returns a structured investigation report with a probable root cause, supporting findings, confidence level, recommended next steps, and investigation status.
 
 MARA only provides research and recommendations. It does not restart jobs, modify production systems, or execute recovery actions.
+
+## TC1 Step 9 — Containerization
+
+### External CDN Dependency
+
+MARA currently loads the Gradio JavaScript client from the public jsDelivr CDN. If our corporate network blocks this CDN, the MARA webpage may load, but the investigation functionality could fail.
+
+For a production deployment, I would package the JavaScript library with MARA and serve it directly from the application container. This removes the browser's dependency on the public CDN.
+
+### Docker Image vs. Python Virtual Environment
+
+A Python virtual environment mainly manages Python packages and dependencies. A Docker image goes further by packaging MARA's application code, Python runtime, system environment, installed dependencies, and startup instructions.
+
+This makes it easier for the platform team to deploy MARA consistently without manually configuring Python and installing packages on every machine. The Claude API key is not included in the image and must be supplied securely when the container starts.
+
+### Docker Image vs. Python Virtual Environment
+
+A Python virtual environment isolates Python dependencies but relies on the host operating system and its installed runtime.
+
+A Docker image packages MARA's application code, Python runtime, dependencies, Linux user-space libraries, and startup instructions. Containers share a Linux kernel instead of running a separate OS kernel.
+
+This helps the platform team deploy MARA consistently across environments without manually recreating my development setup.
+
+The Claude API key is not included in the Docker image. It is supplied securely at runtime.
