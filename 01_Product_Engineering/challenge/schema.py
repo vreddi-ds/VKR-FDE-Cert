@@ -130,6 +130,16 @@ def solve(request: Request) -> Response:
         llm_response = reply           #Saves the latest accumulated response
 
     # Convert the LLM-generated JSON text into a Python dictionary.
+    # TEMPORARY DEBUG: Inspect Claude's response before JSON parsing.
+    # print("MARA LLM response:", repr(llm_response))
+
+    # Remove Markdown JSON code fences if the LLM includes them.
+    llm_response = llm_response.strip()
+
+    if llm_response.startswith("```"):
+        llm_response = llm_response.split("\n", 1)[1]
+        llm_response = llm_response.rsplit("```", 1)[0].strip()
+
     response_data = json.loads(llm_response)
 
     # Validate the LLM output against MARA's six-field Response schema.
