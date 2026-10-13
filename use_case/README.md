@@ -281,3 +281,111 @@ However, these tests are not enough to prove MARA is consistently accurate or re
 Before comparing different models or versions of MARA, I would need a repeatable evaluation process using a fixed set of synthetic test cases, clearly defined scoring criteria, and multiple runs. I would measure root-cause accuracy, evidence grounding, confidence calibration, recommended next steps, and whether MARA avoids unsupported recovery actions.
 
 This would give us measurable results rather than relying on whether an individual response looks good.
+
+## TC1 Step 12 — Real User Feedback
+
+**Status:** Feedback requested — awaiting response.
+
+A mainframe Production Support colleague has been contacted and provided with screenshots of MARA's input form and a synthetic investigation report. Additional test screenshots and the five golden examples will be shared for review.
+
+### Required Feedback Questions
+
+**1. What would you use this for?**
+
+Response: Pending.
+
+**2. What is missing before you would actually use it?**
+
+Response: Pending.
+
+**3. What would you expect it to cost?**
+
+Response: Pending.
+
+### Review of Five Golden Examples
+
+Reviewer feedback: Pending.
+
+Examples rejected: Not yet determined.
+
+Changes resulting from feedback: Pending.
+
+### Follow-up
+
+When the colleague responds, I will update this section, `stakeholders.md`, and `decisions.md` with actual feedback and decisions.
+
+## Bring it to work — TC1 Step 13
+
+### MARA Cost and Business Value Estimates
+
+**1. Cost per LLM call — Measured tokens, published pricing**
+
+- Model: Claude Sonnet 5
+- Input tokens: 962 (measured from one synthetic S0C7 investigation)
+- Output tokens: 721 (measured)
+- Input price: $2 per million tokens (published pricing)
+- Output price: $10 per million tokens (published pricing)
+
+Cost per call = (962 / 1,000,000 × $2) + (721 / 1,000,000 × $10) = **$0.009134**
+
+**2. Estimated annual model cost — Assumed investigation volume**
+
+Daily investigation volume: 10–25 (my assumption; needs confirmation with Production Support).
+
+Working days per year: 250 (bootcamp assumption).
+
+Model cost per year = $0.009134 × (10–25) × 250 = **$22.84–$57.09**
+
+**3. Estimated annual manual investigation cost — Charter estimate and assumed labor rate**
+
+Manual investigation time: 15–20 minutes (MARA charter estimate; not independently timed for this exercise).
+
+Fully loaded hourly rate: $40 (planning assumption; needs confirmation).
+
+Human cost per year = (15–20 minutes / 60) × $40 × (10–25 investigations per day) × 250 days = **$25,000–$83,333**
+
+**4. Manual cost / model cost ratio**
+
+Ratio = annual manual investigation cost / annual Claude API cost.
+
+Estimated ratio = **approximately 1,095×–1,460×** across the low and high scenarios.
+
+This ratio compares total manual investigation labor cost with API usage cost. It does not represent actual savings or return on investment.
+
+If MARA saves five minutes per investigation, the potential annual labor capacity released would be approximately 208–521 hours, valued at $8,333–$20,833 using the assumed $40 hourly rate.
+
+Infrastructure, security, monitoring, implementation, and human-review costs are excluded from these API-only calculations.
+
+### p95 Latency Target
+
+**Target:** 95% of MARA investigation requests should complete within 30 seconds.
+
+**Basis:** MARA's charter targets an informed Level 1 investigation decision within 10 minutes. A 30-second response target would leave time for the engineer to review evidence, determine next steps, and communicate with Operations.
+
+**Measurement status:** Proposed target, not yet benchmarked.
+
+**Likely adoption concern:** Investigation quality and response latency may be more significant adoption barriers than Claude API token costs, based on the preliminary estimates.
+
+### Step 12 Cost Expectation
+
+The contacted user's expected cost: Pending actual feedback. This will be compared with the calculated cost after the user responds.
+
+### What I Would Swap to Bring MARA into Production
+
+**1. Data — Replace synthetic inputs with approved enterprise data**
+
+MARA currently uses synthetic JES messages and golden examples. For production, I would integrate approved, read-only access to actual JES diagnostics, JCL, historical ServiceNow incidents, and recovery runbooks. Access must follow company data-security requirements, and findings should include references to the supporting evidence.
+
+**2. Model/Endpoint — Use the approved enterprise AI platform**
+
+MARA currently uses Claude Sonnet 5 through my personal Anthropic API account. For production, I would investigate whether FIS's existing Anthropic partnership provides an approved enterprise LLM endpoint or gateway.
+
+The approved model, API access method, pricing, data-handling requirements, and network connectivity must be confirmed with the internal AI Platform team. MARA's LiteLLM integration should make provider switching easier.
+
+**3. Access/Approval — Follow the enterprise deployment process**
+
+I would work with Platform Engineering, AI Security, and Production Support management to identify the approved deployment environment, internal container registry, authentication requirements, secrets management, and security review process.
+
+Level 1 engineers should access MARA through corporate authentication without managing Claude API keys. MARA would remain a research assistant; production changes and recovery actions would require human authorization.
+
+**Current status:** These are proposed production changes. The approved implementation approach is pending confirmation from the appropriate internal teams.

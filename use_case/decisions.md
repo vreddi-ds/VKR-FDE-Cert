@@ -43,3 +43,18 @@ The last column is the one people skip and the one clients ask about. "We chose
 dense retrieval; we would switch to hybrid if exact-match queries went above ~20%
 of traffic" is an engineering position. "We chose dense retrieval" is a
 preference.
+
+## TC1 Step 12 — User Feedback Decision
+
+**Status:** Pending user feedback.
+
+I have shared MARA's input screen and a synthetic investigation output with a mainframe Production Support colleague.
+
+No application design changes have been made based on user feedback yet because I am awaiting the reviewer's response.
+
+Once feedback is received, I will document:
+- What the reviewer found useful or missing.
+- Which of the five golden examples they would reject.
+- What application changes were made, or why no change was needed.
+
+I will not treat my own evaluation results as independent user feedback.

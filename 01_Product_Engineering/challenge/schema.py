@@ -61,10 +61,8 @@ class Response(BaseModel):
         # It does not mean the batch job has been recovered.
         # Insufficeint_Evidence == MARA could not establish an evidence-supported probable cause
 
-def solve(request: Request) -> Response:
-    """Investigate a mainframe batch job failure and return a structured research report."""
-    #raise NotImplementedError("MARA investigation logic will be implemented in TC1 Step 8")
-
+def build_mara_prompt(request: Request) -> str:
+    """Build the investigation prompt used by MARA."""
 # MARA Prompt Design Notes:
     # 1. Evidence grounding: Prevent the LLM from inventing root causes.
     # 2. Safety: MARA recommends actions but never executes recovery.
@@ -120,6 +118,14 @@ def solve(request: Request) -> Response:
     Return valid JSON only.
     Do not include Markdown formatting or explanations outside the JSON.
     """
+    return prompt
+
+    def solve(request: Request) -> Response:
+        """Investigate a mainframe batch job failure and return a structured research report."""
+
+        prompt = build_mara_prompt(request)
+
+    #raise NotImplementedError("MARA investigation logic will be implemented in TC1 Step 8")
 
     # Send the MARA investigation prompt to the LLM.
     # stream_reply() yields progressively longer response strings.

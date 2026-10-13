@@ -46,3 +46,27 @@ gap is more useful than a silent one.
 **Next action:** Identify the correct contact through management or the internal Platform Engineering team and send the prepared eight-question deployment questionnaire.
 
 **Interview status:** Pending. No internal deployment information has been verified through a stakeholder interview.
+
+## TC1 Step 12 — MARA User Feedback
+
+**Contact:** Mainframe Production Support colleague
+**Status:** Feedback requested — awaiting response
+**Date contacted:** October 13, 2026
+
+**Material shared:**
+- Screenshot of MARA's Batch Abend Investigation input form.
+- Screenshot of a synthetic investigation report.
+
+**Planned follow-up:**
+- Share additional screenshots showing MARA's evaluation results.
+- Present all five synthetic golden examples.
+- Ask the three required feedback questions.
+- Document which golden examples the reviewer would reject and why.
+
+**Feedback received:** Awaiting feedbac.
+
+**What I learned:** Pending actual feedback.
+
+**Next action:** Follow up with the colleague and record their comments in their own words.
+
+**Expected response:** May take several days, depending on availability.
