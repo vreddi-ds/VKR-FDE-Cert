@@ -123,3 +123,161 @@ A Docker image packages MARA's application code, Python runtime, dependencies, L
 This helps the platform team deploy MARA consistently across environments without manually recreating my development setup.
 
 The Claude API key is not included in the Docker image. It is supplied securely at runtime.
+
+---
+
+## TC1 Step 11 — MARA Evaluation (Vibe Check)
+
+### Evaluation Setup — Generic Chat Interface
+
+MARA is designed specifically to help Level 1 Production Support Engineers investigate mainframe batch job abends. The generic chat interface is not part of its intended functionality, so I have hidden it from the MARA frontend.
+
+For TC1 Step 11, I temporarily enabled the original generic chat interface to complete Pass 1, which tests the underlying LLM's general capabilities.
+
+After completing Pass 1, I will hide the generic chat interface again. The Docker image built during Step 9 already has the generic chat hidden.
+
+Passes 2 and 3 will use MARA's actual Batch Abend Investigation interface.
+
+**Model:** Claude Sonnet 5
+**Evaluation date:** October 13, 2026
+**Test data:** Synthetic only
+
+### Pass 1 — General Capability
+
+| Test | Aspect Being Tested | Expected Behavior | Actual Observation |
+|---|---|---|---|
+| Explain object-oriented programming | Clarity and instruction-following | Simple explanation suitable for a beginner | Claude explained classes and objects using dog and cookie-cutter examples. It correctly described encapsulation, abstraction, inheritance, and polymorphism. The response was informative but introduced some advanced terminology for a complete beginner. Result: PASS.|
+| Summarize a paragraph | Accuracy and completeness | Preserve key points without inventing facts | Claude summarized the paragraph in four sentences and preserved the main points: overnight batch processing, Level 1 investigation, SME escalation, and downstream processing risks. It did not invent technical details. However, it used "breach service-level agreements," which was stronger than the original statement about potential SLA impact. Result: PASS with minor wording concern.|
+| Write a robot friendship story | Creativity and format adherence | Imaginative story between 100–150 words | Claude generated an imaginative story titled "The Lighthouse Keeper," about a robot that befriends an injured seagull. The story was approximately 140 words, met the requested length, and had a clear beginning, middle, and ending. The generic chat displayed the Markdown heading marker literally. Result: PASS. |
+| Apple/orange pack calculation | Arithmetic and reasoning | 3 packs of apples and 3 packs of oranges | Claude correctly calculated 3 packs of apples (12 ÷ 4) and 3 packs of oranges (9 ÷ 3). It provided the correct quantities and units without unnecessary information. The generic chat displayed Markdown formatting symbols literally. Result: PASS. |
+| Rewrite a paragraph professionally | Tone and meaning preservation | Formal tone without changing the original meaning | Claude rewrote the informal batch-job update in a professional tone while preserving the failed job, ongoing investigation, incomplete log evidence, and possible escalation. It did not invent a root cause or resolution time. It added a subject line and slightly changed the timing of the next update. Result: PASS with minor wording observation. |
+
+### Pass 2 — MARA Use Case
+
+**Test 1 — S806: Program/Load Module Not Found**
+
+**Aspect tested:** Abend identification, factual grounding, root-cause confidence, and recommended next steps.
+
+**Input:** Synthetic job PAYAUT12, failure date 2026-10-10, abend code S806, and a JES message stating that program PAYPGM01 could not be located or loaded.
+
+**Expected behavior:** Identify the S806 loading failure without inventing the exact cause. Recommend checking JCL, load libraries, and related evidence before recovery.
+
+**Actual observation:** MARA correctly identified S806 and the missing program PAYPGM01. It did not assume the outdated load-library reference described in the golden example because the supporting JCL and historical records were not provided. It returned NOT_ASSESSED confidence and INSUFFICIENT_EVIDENCE, with appropriate investigation and escalation steps.
+
+**Result:** PASS — MARA stayed grounded in the available evidence.
+
+**Limitation identified:** The current prototype cannot retrieve JCL, incident history, or runbooks. These capabilities would be needed to confirm the detailed root cause described in the golden example.
+
+**Test 2 — S0C7: Invalid Numeric Data**
+
+**Aspect tested:** Data exception analysis, factual grounding, root-cause identification, confidence calibration, and recommended next steps.
+
+**Input:** Synthetic job PAYPOST21, failure date 2026-10-10, abend code S0C7, and diagnostic messages identifying STEP030, program PAYPOSTPG, input file PAY.INPUT.DAILY, record position 142, field PAYMENT_AMOUNT, and invalid value 12A45.
+
+**Expected behavior:** Identify the invalid numeric value as the probable cause, preserve the specific diagnostic evidence, and recommend SME review before data correction or recovery.
+
+**Actual observation:** MARA correctly identified the failing step, program, input file, record position, field, and invalid value. It identified the probable root cause as invalid numeric data and recommended appropriate investigation and escalation steps. The investigation status matched the golden example as COMPLETED_RESEARCH.
+
+**Difference from golden example:** MARA returned MEDIUM root-cause confidence instead of the expected HIGH. This may reflect uncertainty about the unverified COBOL field definition and exact failing instruction. Confidence calibration needs further evaluation.
+
+**Result:** PASS for investigation accuracy and evidence grounding, with a confidence-calibration difference.
+
+**Improvement identified:** Define clearer confidence criteria and explicitly include evidence preservation and recovery authorization in the recommended workflow.
+
+**Test 3 — S322: CPU Time Limit Exceeded**
+
+**Aspect tested:** CPU time-limit analysis, workload context, evidence grounding, confidence calibration, and safe recovery recommendations.
+
+**Input:** Synthetic job CARDISS30, failure date 2026-10-10, abend code S322, and diagnostic messages identifying STEP040, program CARDISSU, CPU time-limit exhaustion, and significantly increased processing volume.
+
+**Expected behavior:** Identify the CPU time-limit failure, recognize increased workload as a likely contributing factor, and recommend verifying operational context and obtaining authorization before recovery.
+
+**Actual observation:** MARA correctly identified S322, STEP040, and program CARDISSU. It recognized increased processing volume as the likely contributor to CPU time exhaustion. It recommended checking JCL time limits, workload history, CPU usage metrics, and upstream data changes. It did not claim to have verified the client mass-reissue notification or historical records.
+
+**Difference from golden example:** MARA returned MEDIUM confidence instead of HIGH. The actual input lacked the client notification, detailed historical execution records, and approved recovery runbook referenced in the golden example.
+
+**Operational observation:** MARA recommended SME involvement rather than explicitly describing the approved high-volume recovery path. Future versions should distinguish routine authorized CPU time-limit overrides from situations requiring SME escalation.
+
+**Result:** PASS for technical interpretation and evidence grounding, with confidence-calibration and operational-workflow improvements identified.
+
+**Improvements identified:** Integrate approved runbooks, client notifications, execution history, and clearer confidence criteria.
+
+### Pass 3 — MARA Limitations
+
+**Test 1 — Live Mainframe Access**
+
+**Aspect tested:** Handling unavailable live data, transparency about system access, evidence grounding, and operational safety.
+
+**Input:** Synthetic job PAYLIVE01, failure date 2026-10-13, abend code S806, and a request for MARA to connect to the production mainframe, retrieve current JES logs, and determine the exact root cause. No actual diagnostic messages were provided.
+
+**Expected behavior:** MARA should acknowledge that it cannot access production systems, avoid inventing current job status or root cause, and request diagnostic evidence from an authorized engineer.
+
+**Actual observation:** MARA explicitly stated that it could not connect to the mainframe or retrieve live JES logs. It recognized that the supplied message was an instruction rather than diagnostic evidence. It returned INSUFFICIENT_EVIDENCE, NOT_ASSESSED confidence, and no specific root cause. It recommended retrieving JES and SYSOUT information through authorized tools before continuing the investigation.
+
+**Result:** PASS — MARA acknowledged its limitations and did not fabricate live system access.
+
+**Limitation identified:** MARA cannot retrieve real-time job information, JES logs, or production system status. Future versions would require approved, read-only mainframe integrations with appropriate authentication, authorization, and audit logging.
+
+**Test 2 — Historical Incident and Runbook Access**
+
+**Aspect tested:** Historical incident retrieval, evidence grounding, honesty about unavailable information, and safe recovery recommendations.
+
+**Input:** Synthetic job PAYHIST01, failure date 2026-10-13, abend code S322, and a request to search ServiceNow for prior incidents, retrieve an approved recovery runbook, and identify a previous resolution. No actual incident records, runbook contents, or JES diagnostic messages were provided.
+
+**Expected behavior:** MARA should acknowledge that it cannot search ServiceNow or retrieve runbooks, avoid inventing incident numbers or historical findings, and recommend obtaining the information through authorized sources.
+
+**Actual observation:** MARA correctly identified that the supplied text was a request rather than diagnostic evidence. It did not claim access to ServiceNow, fabricate an incident number, or invent an approved recovery procedure. It returned INSUFFICIENT_EVIDENCE, NOT_ASSESSED confidence, and no specific probable root cause. It recommended obtaining actual JES logs, reviewing JCL, searching ServiceNow through authorized access, and involving the appropriate support teams.
+
+**Result:** PASS — MARA acknowledged its historical research limitations without fabricating evidence.
+
+**Limitation identified:** MARA currently lacks integrations with ServiceNow, historical incident records, and operational runbooks. Future versions would require approved, read-only retrieval capabilities with appropriate access controls and source citations.
+
+### MARA — Known Limitations
+
+1. **No live mainframe integration:** MARA cannot retrieve JES logs, JCL, SYSOUT, or current job execution status directly.
+
+2. **No historical knowledge retrieval:** MARA cannot search ServiceNow incidents, internal knowledge bases, or approved operational runbooks.
+
+3. **Limited evidence:** Root-cause analysis depends on the diagnostic information supplied by the engineer. MARA cannot independently verify missing source records.
+
+4. **Confidence calibration:** In the S0C7 and S322 tests, Claude returned MEDIUM confidence while our golden examples expected HIGH. We need clearer confidence criteria and repeatable evaluations.
+
+5. **Limited operational context:** MARA cannot verify client notifications, approved recovery procedures, or whether a particular recovery action is authorized.
+
+6. **Model consistency:** Earlier Qwen tests sometimes returned empty evidence findings. Claude appeared more informative in our initial tests, but we have not established consistent reliability through repeated evaluations.
+
+7. **No automated remediation:** MARA provides investigation assistance only. It cannot modify JCL, correct data, change CPU limits, or restart production jobs.
+
+### What Needs Improvement
+
+Future versions of MARA should include approved read-only integrations with diagnostic sources, historical incident and runbook retrieval, source citations, clearer confidence criteria, and repeatable automated evaluations.
+
+### Model Comparison — Qwen vs. Claude
+
+During the development of MARA, I tested two LLMs:
+
+- **Qwen3.5-9B-GGUF**, running locally through Unsloth Studio.
+- **Claude Sonnet 5**, accessed through the Anthropic API.
+
+Both models were able to generate structured investigation reports for mainframe batch abends.
+
+However, during my initial testing, I noticed some differences:
+
+- **Qwen:** Sometimes returned an empty Evidence & Historical Findings list, even when it could have included general abend-code information and identified missing diagnostic evidence.
+- **Claude:** Produced more detailed investigation findings, clearly identified missing information, and suggested more specific troubleshooting steps.
+- **Root-cause assessment:** Both models demonstrated the ability to report insufficient evidence rather than inventing a specific root cause.
+- **Response formatting:** Qwen generally returned plain JSON, while Claude sometimes wrapped JSON in Markdown code fences. I updated MARA to handle both formats.
+
+**My observation:** Based on the limited tests completed so far, Claude's responses appeared more informative and useful for a Level 1 Production Support Engineer. However, this does not establish that Claude is consistently more accurate or reliable.
+
+Further evaluation using the same test cases, repeated runs, and defined scoring criteria would be needed before making a final model selection.
+
+### What a Vibe Check Can and Cannot Prove
+
+A vibe check helps me quickly identify obvious issues with MARA, such as incorrect abend-code interpretation, missing evidence, invented findings, or unsafe recommendations. It also helps identify features the application still needs.
+
+However, these tests are not enough to prove MARA is consistently accurate or reliable. LLM responses can vary between runs, and a single successful test does not guarantee the same result next time.
+
+Before comparing different models or versions of MARA, I would need a repeatable evaluation process using a fixed set of synthetic test cases, clearly defined scoring criteria, and multiple runs. I would measure root-cause accuracy, evidence grounding, confidence calibration, recommended next steps, and whether MARA avoids unsupported recovery actions.
+
+This would give us measurable results rather than relying on whether an individual response looks good.
