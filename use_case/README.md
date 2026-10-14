@@ -1,4 +1,10 @@
-# Your use case
+## TC1 — MARA Demonstration Video
+
+**Application:** MARA — Mainframe Abend Research Assistant
+
+**Demo:** [Watch the 4-minute MARA demonstration] https://www.loom.com/share/50185b79c7134e13bb97496abef9ec03
+
+**Overview:** MARA helps Level 1 Production Support Engineers investigate mainframe batch job failures using synthetic JES messages. It provides evidence-based findings, confidence levels, and recommended next steps while keeping recovery decisions with authorized personnel.
 
 **This directory is yours.** Everything else in this repository is teaching
 material we wrote. This is the one place you work, and every technical challenge
