@@ -13,9 +13,12 @@
 
 <!-- What you varied to get coverage: persona, format, difficulty, edge cases. -->
 
-| Axis | Values |
-| --- | --- |
-| <!-- --> | <!-- --> |
+| Axis | Values | Reason |
+| --- | --- | --- |
+| Diagnostic completeness | COMPLETE, PARTIAL, MISSING | Tests complete, partial, and missing diagnostic evidence. MISSING includes the mandatory should-decline case, where MARA must not invent a root cause. |
+| Evidence consistency | CONSISTENT, CONFLICTING | Tests whether MARA identifies contradictory evidence instead of making unsupported root-cause conclusions. |
+| Failure category | APPLICATION_DATA, IMS_DATABASE, DATASET_STORAGE, JCL_CONFIGURATION, SYSTEM_OPERATION | Covers different mainframe failure types that require distinct investigation approaches. |
+| Failure sequence | SINGLE_FAILURE, RESTART_RECOVERY, RESTART_FAILURE, DEPENDENCY_CHAIN | Tests whether MARA follows the sequence of failures, restarts, and prerequisite dependencies. |
 
 ## What it can validate
 
