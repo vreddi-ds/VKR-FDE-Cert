@@ -83,8 +83,6 @@ Generated outputs must not be presented as expert-verified root-cause diagnoses 
 
 ## Variation axes
 
-<!-- What you varied to get coverage: persona, format, difficulty, edge cases. -->
-
 | Axis | Values | Reason |
 | --- | --- | --- |
 | Diagnostic completeness | `COMPLETE`, `PARTIAL`, `MISSING` | COMPLETE: JES and application diagnostics provide sufficient evidence to investigate the failure. PARTIAL: Some diagnostics are available, but important information is missing. MISSING: Essential JES and application diagnostics are unavailable; MARA must not invent a root cause and should report insufficient evidence. |
@@ -92,24 +90,41 @@ Generated outputs must not be presented as expert-verified root-cause diagnoses 
 | Failure category | `APPLICATION_DATA`, `IMS_DATABASE`, `DATASET_STORAGE`, `JCL_CONFIGURATION`, `SYSTEM_OPERATION` | APPLICATION_DATA: Invalid numeric data, record-format errors, or application validation failures. IMS_DATABASE: IMS BMP processing, database access, or resource contention. DATASET_STORAGE: Missing datasets, GDG configuration, or insufficient SORT work space. JCL_CONFIGURATION: Incorrect JCL references, missing modules, or skipped prerequisite steps. SYSTEM_OPERATION: Planned IPL, system interruption, or operational recovery. |
 | Failure sequence | `SINGLE_FAILURE`, `RESTART_RECOVERY`, `RESTART_FAILURE`, `DEPENDENCY_CHAIN` | SINGLE_FAILURE: One failure without a subsequent restart. RESTART_RECOVERY: A failed job completes after an authorized restart. RESTART_FAILURE: A restart attempt fails or introduces another problem. DEPENDENCY_CHAIN: An earlier step or prerequisite affects a downstream job or step. |
 
-
 ## What it can validate
 
-<!-- Which claims this data supports. Be narrow. -->
+- The synthetic data generation workflow can produce structured mainframe abend investigation examples using the defined MARA variation axes.
+- In the initial experiment, 15 generated records were successfully parsed, and all 15 passed Pydantic schema validation.
+- All 15 parsed records were retained after character 4-gram Jaccard deduplication using a threshold of 0.7.
+- The dataset can support prototyping and testing of MARA's input/output handling, including job details, probable root cause, confidence level, investigation status, and recommended next steps.
+- The workflow can identify potential similarity and leakage findings that require further review.
 
 ## What it cannot validate
 
-<!-- The important half. Synthetic data cannot tell you about real distribution,
-     real frequency, or failure modes you did not think to generate. Say so. -->
+- The dataset cannot establish MARA's accuracy in diagnosing actual mainframe production abends because the generated root causes have not been independently verified by mainframe subject matter experts.
+- Synthetic records cannot establish the real-world frequency or distribution of S0C7, IMS, JCL, dataset, or other production failures.
+- The initial experiment attempted only 6 of the 120 theoretical variation combinations, so complete coverage has not been demonstrated.
+- Passing Pydantic schema validation does not guarantee that a probable root cause or recommended recovery step is technically correct or operationally safe.
+- Deduplication and automated leakage checks cannot guarantee semantic diversity or the absence of sensitive organizational patterns.
+- The dataset cannot validate MARA's reliability in complex restart scenarios, conflicting diagnostic evidence, or incidents where essential information is missing.
 
 ## What it must never be compared against
 
-<!-- If you have real ground truth somewhere, say where, and say explicitly that
-     these rows are not it. -->
+- These synthetic records must not be treated as verified production incident records or independently established diagnostic ground truth.
+- They must not be used to claim MARA's accuracy, precision, recall, or real-world effectiveness in identifying mainframe abend root causes.
+- The 8 generation seeds in `use_case/evals/golden.jsonl` were used to guide generation and must not be treated as an independent evaluation set.
+- The 8 examples in `use_case/evals/heldout_backtest.jsonl` are separate backtesting candidates, but their expected outcomes also require independent verification before being treated as authoritative ground truth.
+- Synthetic results must not be presented as evidence that MARA can safely recommend or execute production recovery actions.
 
 ## Leakage check
 
-- [ ] No real record was used as a seed.
+- [x] No real record was used as a seed.
 - [ ] No real entity names, IDs, or identifiers appear.
 - [ ] No distinctive internal formats that would identify the firm.
 - [ ] Rare categories were generated, not copied.
+
+**Leakage review findings:**
+
+- **Outward leakage check:** 24 regex matches were reported. These included common mainframe terminology and synthetic identifiers. A match is not necessarily a confirmed disclosure, and manual review remains necessary.
+- **Inward leakage check:** 1 of 15 generated records (`INVUPD77`) exceeded the 0.5 similarity threshold against the generation seeds, with a Jaccard similarity of 0.64.
+- The inward check compared generated records with the generation seeds; it did not establish whether there was overlap with the separate held-out backtesting candidates.
+- No real production incident data was intentionally used in generation. The remaining checklist items require manual review before they can be marked complete.
