@@ -319,29 +319,56 @@ def _():
     # Priya's axes, for incident records. Rewrite these for your use case --
     # the four KEYS vary in almost every enterprise text problem; the VALUES
     # are hers, and yours will be different.
+    # AXES = {
+    #     "persona": [
+    #         "a first-line support agent relaying a customer complaint",
+    #         "an on-call engineer writing at 3 a.m., mid-incident",
+    #         "a business manager who saw the outage but not the cause",
+    #         "a security analyst using precise jargon and ticket references",
+    #     ],
+    #     "length": ["one terse line", "a normal paragraph", "a rambling wall of text"],
+    #     "difficulty": [
+    #         "completely routine -- a known failure with a known fix",
+    #         "ambiguous -- could be an outage or a misconfiguration",
+    #         "under legal hold -- the system should decline to draft anything",
+    #     ],
+    #     "quality": [
+    #         "clean prose typed into the ticketing form",
+    #         "typos and abbreviations pasted from the on-call chat",
+    #         "pasted from an email chain with the thread still attached",
+    #     ],
+    # }
+
+    # MARA variation axes — descriptive values for synthetic generation.
     AXES = {
-        "persona": [
-            "a first-line support agent relaying a customer complaint",
-            "an on-call engineer writing at 3 a.m., mid-incident",
-            "a business manager who saw the outage but not the cause",
-            "a security analyst using precise jargon and ticket references",
+        "diagnostic_completeness": [
+            "COMPLETE — JES and application diagnostics provide sufficient evidence to investigate the failure",
+            "PARTIAL — some diagnostics are available, but important information is missing",
+            "MISSING — essential JES and application diagnostics are unavailable; do not invent a root cause",
         ],
-        "length": ["one terse line", "a normal paragraph", "a rambling wall of text"],
-        "difficulty": [
-            "completely routine -- a known failure with a known fix",
-            "ambiguous -- could be an outage or a misconfiguration",
-            "under legal hold -- the system should decline to draft anything",
+        "evidence_consistency": [
+            "CONSISTENT — the available diagnostic and historical evidence agrees",
+            "CONFLICTING — diagnostic or historical findings contradict one another; do not assume a cause",
         ],
-        "quality": [
-            "clean prose typed into the ticketing form",
-            "typos and abbreviations pasted from the on-call chat",
-            "pasted from an email chain with the thread still attached",
+        "failure_category": [
+            "APPLICATION_DATA — invalid numeric data, record-format errors, or application validation failures",
+            "IMS_DATABASE — IMS BMP processing, database access, or resource contention",
+            "DATASET_STORAGE — missing datasets, GDG configuration, or insufficient SORT work space",
+            "JCL_CONFIGURATION — incorrect JCL references, missing modules, or skipped prerequisite steps",
+            "SYSTEM_OPERATION — planned IPL, system interruption, or operational recovery",
+        ],
+        "failure_sequence": [
+            "SINGLE_FAILURE — one failure without a subsequent restart",
+            "RESTART_RECOVERY — a failed job completes after an authorized restart",
+            "RESTART_FAILURE — a restart attempt fails or introduces another problem",
+            "DEPENDENCY_CHAIN — an earlier step or prerequisite affects a downstream job or step",
         ],
     }
 
     combination_count = 1
     for axis_values in AXES.values():
         combination_count *= len(axis_values)
+
     print(f"{len(AXES)} axes -> {combination_count} distinct combinations")
     return (AXES,)
 
@@ -372,6 +399,7 @@ def _(mo):
     expose that two hundred paraphrases of your five examples never could.
 
     **Answer:**
+    One important axis specific to my MARA project is **Failure sequence**, which covers single failures, successful restarts, failed restarts, and dependency chains between batch job steps. This axis would expose whether MARA can distinguish an original abend from a secondary failure caused by skipping a prerequisite step during restart, instead of treating every failure independently and recommending an incorrect recovery action.
     """)
     return
 
@@ -409,13 +437,13 @@ def _(mo):
 @app.cell
 def _(AXES, SEEDS, json, mo):
     import itertools
-
+    # Changing the seed number from 3 to 5 in the 3rd line below.
     def build_prompt(seeds, combo: dict, example_count: int = 3) -> str:
         """One generation prompt for one point in the axis space."""
-        shown = "\n".join(json.dumps(seed, ensure_ascii=False) for seed in seeds[:3])
+        shown = "\n".join(json.dumps(seed, ensure_ascii=False) for seed in seeds[:5])
         described = "\n".join(f"- {axis}: {value}" for axis, value in combo.items())
         return (
-            "Here are real examples of inputs to a system, with the outputs a "
+            "Here are synthetic examples of inputs to a system, with the outputs a "
             "domain expert accepted:\n\n"
             f"{shown}\n\n"
             f"Generate {example_count} NEW examples in the same JSON format, one per line.\n"
@@ -607,6 +635,7 @@ def _(mo):
     to decide.
 
     **Answer:**
+    In MARA, two IMS BMP jobs may share similar JES messages and database terminology, but one could fail due to resource contention while the other fails because of a duplicate-segment insertion. This makes me favor raising the 0.7 deduplication threshold for structured mainframe diagnostics, since lowering it could incorrectly discard distinct failures; I would inspect the *What got dropped* table to see whether records with different diagnostic evidence or root causes were matched. In our initial experiment, all 15 records were retained at 0.7, so further threshold testing would be needed before changing it.
     """)
     return
 
@@ -638,12 +667,37 @@ def _(mo):
 
 @app.cell
 def _():
-    from pydantic import BaseModel, ValidationError
+    # from pydantic import BaseModel, ValidationError
 
-    # Replace with YOUR model, from your charter.
+    # # Replace with YOUR model, from your charter.
+    # class Example(BaseModel):
+    #     input: str
+    #     output: str
+
+    from pydantic import BaseModel, ValidationError
+    from datetime import date
+    from typing import Literal
+
+    class MARAInput(BaseModel):
+        job_name: str
+        failure_date: date
+        abend_code: str
+        jes_messages: list[str] = []
+
+    class MARAOutput(BaseModel):
+        failure_summary: str
+        probable_root_cause: str | None
+        evidence_and_historical_findings: list[str]
+        confidence_level: Literal["HIGH", "MEDIUM", "LOW", "NOT_ASSESSED"]
+        recommended_next_steps: list[str]
+        investigation_status: Literal[
+            "COMPLETED_RESEARCH",
+            "INSUFFICIENT_EVIDENCE"
+        ]
+
     class Example(BaseModel):
-        input: str
-        output: str
+        input: MARAInput
+        output: MARAOutput
 
     return Example, ValidationError
 
@@ -820,6 +874,7 @@ def _(mo):
     committing.
 
     **Answer:**
+    In MARA, a distinctive sequence of scheduler restarts, temporary dataset handling, and management approvals could reveal an organization's internal recovery procedures even if all job names and identifiers were changed. The regex leakage check would not necessarily detect these operational patterns, so I would manually review the generated examples and remove or generalize any organization-specific procedures before committing the dataset.
     """)
     return
 
@@ -898,6 +953,7 @@ def _(mo):
     generated rows can be.)
 
     **Answer:**
+    The `synthetic_v1.jsonl` file contains **prototyping data**, because its 15 generated examples and expected outputs have not been independently verified by a mainframe subject matter expert. Although all 15 records passed schema validation, this does not prove that MARA can accurately identify root causes or recommend appropriate recovery steps for real production abends. I would document this limitation in the datasheet's **"What it cannot validate"** section, particularly for complex IMS failures, restart dependencies, and incidents with insufficient diagnostic evidence.
     """)
     return
 
