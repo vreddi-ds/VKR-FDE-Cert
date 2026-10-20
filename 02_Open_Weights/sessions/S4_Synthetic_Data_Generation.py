@@ -399,7 +399,12 @@ def _(mo):
     expose that two hundred paraphrases of your five examples never could.
 
     **Answer:**
-    One important axis specific to my MARA project is **Failure sequence**, which covers single failures, successful restarts, failed restarts, and dependency chains between batch job steps. This axis would expose whether MARA can distinguish an original abend from a secondary failure caused by skipping a prerequisite step during restart, instead of treating every failure independently and recommending an incorrect recovery action.
+    One important axis specific to my MARA project is **Failure sequence**,
+    which covers single failures, successful restarts, failed restarts, and
+    dependency chains between batch job steps. This axis would expose whether
+    MARA can distinguish an original abend from a secondary failure caused by
+    skipping a prerequisite step during restart, instead of treating every failure
+    independently and recommending an incorrect recovery action.
     """)
     return
 
@@ -635,7 +640,14 @@ def _(mo):
     to decide.
 
     **Answer:**
-    In MARA, two IMS BMP jobs may share similar JES messages and database terminology, but one could fail due to resource contention while the other fails because of a duplicate-segment insertion. This makes me favor raising the 0.7 deduplication threshold for structured mainframe diagnostics, since lowering it could incorrectly discard distinct failures; I would inspect the *What got dropped* table to see whether records with different diagnostic evidence or root causes were matched. In our initial experiment, all 15 records were retained at 0.7, so further threshold testing would be needed before changing it.
+    In MARA, two IMS BMP jobs may share similar JES messages and database
+    terminology, but one could fail due to resource contention while the other
+    fails because of a duplicate-segment insertion. This makes me favor raising
+    the 0.7 deduplication threshold for structured mainframe diagnostics, since
+    lowering it could incorrectly discard distinct failures; I would inspect the
+    *What got dropped* table to see whether records with different diagnostic
+    evidence or root causes were matched. In our initial experiment, all 15 records
+    were retained at 0.7, so further threshold testing would be needed before changing it.
     """)
     return
 
@@ -874,7 +886,12 @@ def _(mo):
     committing.
 
     **Answer:**
-    In MARA, a distinctive sequence of scheduler restarts, temporary dataset handling, and management approvals could reveal an organization's internal recovery procedures even if all job names and identifiers were changed. The regex leakage check would not necessarily detect these operational patterns, so I would manually review the generated examples and remove or generalize any organization-specific procedures before committing the dataset.
+    In MARA, a distinctive sequence of scheduler restarts, temporary dataset
+    handling, and management approvals could reveal an organization's internal
+    recovery procedures even if all job names and identifiers were changed.
+    The regex leakage check would not necessarily detect these operational
+    patterns, so I would manually review the generated examples and remove or
+    generalize any organization-specific procedures before committing the dataset.
     """)
     return
 
@@ -953,7 +970,14 @@ def _(mo):
     generated rows can be.)
 
     **Answer:**
-    The `synthetic_v1.jsonl` file contains **prototyping data**, because its 15 generated examples and expected outputs have not been independently verified by a mainframe subject matter expert. Although all 15 records passed schema validation, this does not prove that MARA can accurately identify root causes or recommend appropriate recovery steps for real production abends. I would document this limitation in the datasheet's **"What it cannot validate"** section, particularly for complex IMS failures, restart dependencies, and incidents with insufficient diagnostic evidence.
+    The `synthetic_v1.jsonl` file contains **prototyping data**, because its 15
+    generated examples and expected outputs have not been independently verified
+    by a mainframe subject matter expert. Although all 15 records passed schema
+    validation, this does not prove that MARA can accurately identify root causes
+    or recommend appropriate recovery steps for real production abends. I would
+    document this limitation in the datasheet's **"What it cannot validate"**
+    section, particularly for complex IMS failures, restart dependencies, and
+    incidents with insufficient diagnostic evidence.
     """)
     return
 

@@ -482,7 +482,15 @@ def _(mo):
     just watched tells you about what Legal is signing up for on either side.
 
     **Answer:**
-    I would use a lower temperature for Priya's should-decline cases because Legal needs consistent and reproducible responses, especially when an incident is under legal hold. Our experiment showed that at temperature 0.5, only 1 token was needed to cover 95% of the probability mass, compared to around 462 tokens at temperature 1.5. This shows that higher temperatures allow more possible outputs, making the drafts less predictable. Legal is signing up for consistency and reproducibility. The same applies to my MARA project, where the assistant should consistently report insufficient evidence rather than guess a root cause.
+    I would use a lower temperature for Priya's should-decline cases because
+    Legal needs consistent and reproducible responses, especially when an
+    incident is under legal hold. Our experiment showed that at temperature 0.5,
+    only 1 token was needed to cover 95% of the probability mass, compared to
+    around 462 tokens at temperature 1.5. This shows that higher temperatures
+    allow more possible outputs, making the drafts less predictable. Legal is
+    signing up for consistency and reproducibility. The same applies to my MARA
+    project, where the assistant should consistently report insufficient evidence
+    rather than guess a root cause.
     """)
     return
 
@@ -636,7 +644,13 @@ def _(mo):
     have to tune by hand and re-justify per incident.
 
     **Answer:**
-    A fixed top-k is not ideal for Priya's 200 incident reports because the model's confidence changes from one prompt to another, but top-k always keeps the same number of tokens. Our experiment showed that top-p automatically adjusted the candidate set from 2 to 65 tokens while top-k stayed at 50, allowing Priya to use one consistent setting approved by Legal. The same applies to MARA because some abend investigations have clear evidence while others have more uncertainty, although top-p alone cannot ensure accurate conclusions.
+    A fixed top-k is not ideal for Priya's 200 incident reports because the
+    model's confidence changes from one prompt to another, but top-k always
+    keeps the same number of tokens. Our experiment showed that top-p automatically
+    adjusted the candidate set from 2 to 65 tokens while top-k stayed at 50,
+    allowing Priya to use one consistent setting approved by Legal. The same
+    applies to MARA because some abend investigations have clear evidence while
+    others have more uncertainty, although top-p alone cannot ensure accurate conclusions.
     """)
     return
 
@@ -973,7 +987,11 @@ def _(mo):
     reproduce the draft it produced.
 
     **Answer:**
-    The temperature ceiling alone is not enough for Priya's Legal team because the same temperature can behave differently across models, and sampling can produce different outputs. She must also record the exact model identity/version, the random seed and other sampler settings, to reproduce a draft. For MARA, the same information will be important when reproducing synthetic abend investigations.
+    The temperature ceiling alone is not enough for Priya's Legal team because
+    the same temperature can behave differently across models, and sampling can
+    produce different outputs. She must also record the exact model identity/version,
+    the random seed and other sampler settings, to reproduce a draft. For MARA,
+    the same information will be important when reproducing synthetic abend investigations.
     """)
     return
 
@@ -1487,7 +1505,14 @@ def _(mo):
     mistake a constraint for a preference.
 
     **Answer:**
-    Our experiment measured 42.61 seconds for the local model and 3.17 seconds for the hosted model, along with the generated token counts; API pricing is looked up from the provider's pricing documentation, not measured by the notebook. Although the hosted model was faster, it does not satisfy Priya's Security requirement that incident records remain inside the approved network or Legal's requirement for reproducibility with full model and sampling control. I would document these as hard constraints in the decision record, separately label latency and token counts as measured results and pricing as looked-up information.
+    Our experiment measured 42.61 seconds for the local model and 3.17 seconds
+    for the hosted model, along with the generated token counts; API pricing is
+    looked up from the provider's pricing documentation, not measured by the notebook.
+    Although the hosted model was faster, it does not satisfy Priya's Security
+    requirement that incident records remain inside the approved network or Legal's
+    requirement for reproducibility with full model and sampling control. I would
+    document these as hard constraints in the decision record, separately label
+    latency and token counts as measured results and pricing as looked-up information.
     """)
     return
 
