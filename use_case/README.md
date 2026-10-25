@@ -395,3 +395,11 @@ I would work with Platform Engineering, AI Security, and Production Support mana
 Level 1 engineers should access MARA through corporate authentication without managing Claude API keys. MARA would remain a research assistant; production changes and recovery actions would require human authorization.
 
 **Current status:** These are proposed production changes. The approved implementation approach is pending confirmation from the appropriate internal teams.
+
+### TC3 Retrieval Evaluation — Step 1
+
+Created 10 SME-reviewed retrieval questions in `use_case/evals/retrieval.jsonl`, based on the synthetic MARA incident corpus developed during TC2 using real-world production support scenario patterns.
+
+Of the 10 questions, 6 are labelled `lookup`, 3 are labelled `multi-hop`, and 1 is labelled `decline`.
+
+Three questions (Q4, Q5, and Q10) require evidence from more than one incident record. Q10 requires three records, establishing a provisional minimum top-k of 3 for complete gold-record coverage, assuming one indexed document per incident.
