@@ -303,6 +303,13 @@ def _(mo):
     page names that make the second approach possible at all?
 
     **Answer:**
+    In MARA, questions involving a specific job name, abend code, failed step, program, record number, or invalid field value require exact evidence retrieval. For example, INVUPD77 requires the correct record position, field name, and invalid value.
+
+    Questions involving multiple incidents, such as comparing upstream processing failures or IMS deadlocks, require retrieving evidence from two or more records. In current TC3 evaluation includes three such questions (Q4, Q5, and Q10).
+
+    My synthetic corpus contains 15 JSONL incident records with structured input and output fields, but it does not have Markdown headings, a navigational index, or dedicated stable record IDs. So decided to use unique job names as record identifiers. Not sure at this time what downstream impacts it will on MARA's progress.
+
+    So I am hoping the created corpus is suitable for building a retrieval index, but a DCI approach would need an additional navigation interface to list, search, and read individual incidents. Not assuming the existing JSONL automatically provides the same navigation capabilities as the provided TC3 Markdown wiki.
 
     ---
     ## Task 2 — Use one agent loop for both approaches
@@ -416,6 +423,13 @@ def _(mo):
     it says — and which approach makes that easier to do?
 
     **Answer:**
+    I would save the source document names, tools called, search arguments, evidence retrieved, number of tool calls, and latency. This would help another engineer understand how the assistant reached its answer and verify the supporting evidence.
+
+    In the above test, both approaches returned the correct answer. Agentic RAG made two search calls, returned 3,207 evidence characters, and took 4.1 seconds. DCI made one read_page call, returned 4,777 evidence characters, and took 3.1 seconds.
+
+    DCI made the investigation easier to follow in this case because it directly identified and read the relevant tariff document. However, Agentic RAG returned smaller sections of evidence, which may be more efficient for other subsequent questions.
+
+    For MARA, I would also preserve the incident record IDs and supporting evidence references so Production Support can verify the findings before recommending recovery actions.
 
     ---
     ## Task 3 — Evaluate outcomes and behaviour
@@ -519,6 +533,13 @@ def _(mo):
     tools — not the model — that would bring it back?
 
     **Answer:**
+    Based on the evaluation results, I would monitor evidence_chars first because retrieving too much information could increase token usage and cost, especially as MARA's incident corpus grows.
+
+    In this test, DCI returned up to 9,683 evidence characters, while Agentic RAG returned up to 7,993. Both approaches passed 6 of 7 questions, but they failed different cases.
+
+    For DCI, I would consider adding a tool option to read only a relevant section of a document instead of always returning the complete page. This could reduce unnecessary evidence while preserving the ability to retrieve more context when required.
+
+    I would also monitor latency_s, since Agentic RAG reached 13.73 seconds in one case. I would not change the LLM until we measure whether retrieval-tool adjustments can improve these results.
 
     ---
     ## Task 4 — Inspect the difference
@@ -647,6 +668,11 @@ def _(mo):
     get approved, and what would change your mind?
 
     **Answer:**
+    For DCI, list_pages should display only authorized documents, grep_wiki should search only authorized content, and read_page must verify user access before returning the document.
+
+    For Agentic RAG, authorization filters must be applied before ranking or returning chunks. The LLM should never receive evidence the requesting user is not permitted to access.
+
+    For our current TC3 synthetic corpus, either approach can be tested because it contains no confidential production data. For a real production deployment, I would consult with the Information Security and Enterprise Architecture teams to review the proposed approach, confirm security and architectural requirements, and proceed based on their guidance.
 
     ---
     # Conclusion
@@ -717,6 +743,21 @@ def _(mo):
     MY_CASES = [
         # {"id": "mine_exact", "question": "…", "expected_terms": ["…"], "expected_pages": ["northline_glossary.md"]},
         # {"id": "mine_two_pages", "question": "…", "expected_terms": ["…", "…"], "expected_pages": ["…", "…"]},
+        {
+            "id": "mine_exact",
+            "question": "What does LOS 0x21 indicate?",
+            "expected_terms": ["optical", "below threshold"],
+            "expected_pages": ["northline_glossary.md"]
+        },
+        {
+            "id": "mine_two_pages",
+            "question": "How is First-Time Resolution defined, and why is it prioritized over handling time?",
+            "expected_terms": ["first contact", "handling time"],
+            "expected_pages": [
+                "northline_glossary.md",
+                "northline_field_guide.md",
+            ]
+        },
     ]
 
     my_button = mo.ui.run_button(label=f"Run my {len(MY_CASES)} case(s)", disabled=not MY_CASES)
