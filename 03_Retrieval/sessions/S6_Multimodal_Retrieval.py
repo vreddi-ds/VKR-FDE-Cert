@@ -1031,6 +1031,19 @@ def _(mo):
     in your own corpus — and what about that content decides it.
 
     **Answer:**
+    There are three approaches we learned in this notebook:
+
+    Strategy A – Describe once, index as text: Use a vision model to extract information from images and convert it into searchable text. The text is then embedded and indexed.
+
+    Strategy B – Shared embedding space: Use CLIP to convert images and text into vectors in the same space, allowing text questions to retrieve matching images directly.
+
+    Strategy C – Separate stores with rank fusion: Store text and image embeddings separately, search both, and combine the results using Reciprocal Rank Fusion (RRF).
+
+    For MARA, our current synthetic corpus contains structured JSONL incident records, so text retrieval is sufficient at this stage. If we later add screenshots of JES outputs, scanned runbooks, or operational diagrams, I would start with Strategy A using OCR or image parsing to make the information searchable.
+
+    The main reason is that MARA depends on exact technical evidence such as job names, abend codes, step names, and diagnostic messages. These details must be accurately captured and verified.
+
+    If our corpus becomes more image-heavy or includes diagrams and photographs, I would evaluate Strategy C to combine text and image retrieval.
 
     ### ❓ Question #6
 
@@ -1042,6 +1055,13 @@ def _(mo):
     corpus, and what narrows it first*.
 
     **Answer:**
+    Strategy B has two weaknesses.
+
+    The first is the **modality gap**. Even though CLIP puts text and images into the same vector space, text documents can rank higher than relevant images. We observed this when three memos ranked above the latency chart. Strategy C helps address this by searching text and images separately and combining their rankings using Reciprocal Rank Fusion (RRF).
+
+    The second weakness is that **CLIP cannot reliably read exact numbers from images**. It identified the latency chart, but could not determine that the Coast region's P95 latency was 240 ms. To address this, we first retrieve the relevant chart and then use a vision-language model to read the original image and verify the numbers.
+
+    The vision-language model does not need to see the entire corpus. The retrieval system narrows millions of possible documents to a small number of relevant candidates before passing the selected images to the vision model.
     """)
     return
 
@@ -1185,6 +1205,13 @@ def _(mo):
     would verify a model's reading of them*.
 
     **Answer:**
+    A chart caption is useful for finding the correct image, but it may miss important details or contain incorrectly extracted numbers. That is why the system retrieves the original image and sends its pixels to the vision model when answering.
+
+    In Task 2, we checked extracted numbers against the reference answer key. For production, we would need similar validation before trusting the model's interpretation of an image.
+
+    For MARA, job names, abend codes, step names, record numbers, and diagnostic messages must be accurate. If we later retrieve screenshots or scanned runbooks, I would verify these identifiers against the original evidence rather than relying only on generated captions.
+
+    The retrieval system should first narrow the corpus to a small number of relevant sources. The vision model then reads those selected images, not the entire corpus. Its readings would still need validation before they are used to recommend production recovery actions.
 
     ---
     ## Task 7 — Measure it, and probe it with your own queries
@@ -1253,7 +1280,8 @@ def _(retrieve, retrieve_B, retrieve_C, ui):
 @app.cell
 def _(mo):
     probe_query = mo.ui.text(
-        value="a pie chart of where the support tickets come from",
+        # value="a pie chart of where the support tickets come from",
+        value="What share of tickets are caused by the customer's own equipment?",
         label="Your query",
         full_width=True,
     )
@@ -1522,7 +1550,21 @@ def _(mo):
     right — and what does that say about adding a lexical index alongside?
 
     **Answer:**
+    Raw scores may be wrong tool for that merge, because each model can produce
+    scores on a different scale.A high score from the text embedding model does
+    not necessarily mean it is more relevant than a lower score from CLIP. Reciprocal
+    Rank Fusion (RRF) addresses this by combining the ranking positions instead of
+    comparing raw similarity scores. We used this in Strategy C and also in the video
+    retrieval exercise.
 
+    For MARA, many of our questions involve exact job names, abend codes, failed steps,
+    program names, and record numbers. For these questions, I would expect a text-based
+    retrieval approach to be more useful than image retrieval, particularly when those
+    identifiers are available as text.
+
+    I would also consider adding a lexical search index, such as BM25, alongside vector
+    retrieval. BM25 can help match exact technical identifiers, while vector retrieval
+    can help find incidents described using different words.
     ---
     # Conclusion
 
