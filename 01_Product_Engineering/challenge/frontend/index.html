@@ -272,6 +272,10 @@
 
         // Job Name is valid, so allow the engineer to enter Failure Date.
         failureDateInput.disabled = false;
+        // Recheck any Failure Date and Abend Code already entered.
+        if (failureDateInput.value.trim().length > 0) {
+            validateFailureDateInput();
+        }
         return true;
       }
 
@@ -352,6 +356,10 @@
           }
           // Date passed validation. Enable the Abend Code field.
           abendCodeInput.disabled = false;
+          // Recheck the Abend Code if the engineer already entered one.
+          if (abendCodeInput.value.trim().length > 0) {
+              validateAbendCodeInput();
+          }
           return true;
         } catch (error) {
           failureDateError.textContent = error.message;
