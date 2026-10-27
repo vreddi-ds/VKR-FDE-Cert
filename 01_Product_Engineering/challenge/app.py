@@ -12,7 +12,11 @@ from fastapi.responses import HTMLResponse
 from gradio import Server
 
 from llm import stream_reply
-from schema import Request, solve
+from schema import Request, solve, MAX_FAILURE_AGE_YEARS
+from pydantic import ValidationError
+from fastapi import HTTPException
+from datetime import date
+from dateutil.relativedelta import relativedelta
 
 app = Server()
 
@@ -40,12 +44,19 @@ def research_mainframe_batch_abend(
     """Research a mainframe batch job abend and return a structured investigation report."""
 
     # Validate incoming API parameters against MARA's Request schema.
-    request = Request(
-        job_name=job_name,
-        failure_date=failure_date,
-        abend_code=abend_code,
-        jes_messages=jes_messages if jes_messages is not None else []
-    )
+    try:
+        request = Request(
+            job_name=job_name,
+            failure_date=failure_date,
+            abend_code=abend_code,
+            jes_messages=jes_messages if jes_messages is not None else []
+        )
+    except ValidationError as exc:
+        # Return a controlled validation error instead of a traceback.
+        message = exc.errors()[0]["msg"]
+        if message.startswith("Value error, "):
+            message = message.removeprefix("Value error, ")
+        raise HTTPException(status_code=422, detail=message) from exc
 
     # Run MARA's investigation using the validated request.
     report = solve(request)
@@ -67,6 +78,18 @@ def homepage() -> str:
 def health() -> dict:
     """Your future ops team will thank you. Load balancers need this."""
     return {"status": "ok", "model": os.getenv("LLM_MODEL", "gpt-4.1-mini")}
+
+@app.get("/config/date-validation")
+def date_validation_config() -> dict:
+    """Expose allowed failure dates to MARA's frontend."""
+    today = date.today()
+    earliest = today - relativedelta(years=MAX_FAILURE_AGE_YEARS)
+
+    return {
+        "min_date": earliest.isoformat(),
+        "max_date": today.isoformat(),
+        "max_age_years": MAX_FAILURE_AGE_YEARS,
+    }
 
 
 if __name__ == "__main__":

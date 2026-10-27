@@ -2,18 +2,88 @@ import json
 from datetime import date
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from llm import stream_reply
+from dateutil.relativedelta import relativedelta
+import re
 
+# MARA configuration
+#
+# Maximum age (in calendar years) allowed for the CURRENT job failure date.
+# This is a provisional prototype business rule, initially set to 5 years.
+#
+# In production, this value should come from approved business requirements
+# and potentially be loaded from an environment/configuration file.
+#
+# IMPORTANT:
+# This restriction applies only to the incoming Request.failure_date.
+# It does NOT limit how far back MARA can search historical incident records.
+MAX_FAILURE_AGE_YEARS = 5
 
 class Request(BaseModel):
-    job_name: str = Field(description="Failed Job Name")
-    failure_date: date = Field(description="Job failed date")
-    abend_code: str = Field(description="Job abend code")
+    job_name: str = Field(
+        min_length=1,
+        max_length=8,
+        description="Mainframe batch job name, maximum 8 characters"
+    )
+    failure_date: date = Field(description="Date of the current job failure")
+    abend_code: str = Field(
+        min_length=1,
+        max_length=5,
+        description="Mainframe abend code, maximum 5 characters"
+    )
     jes_messages: list[str] = Field(
         default_factory=list,
         description="Optional JES error messages"
     )
+
+    @field_validator("failure_date")
+    @classmethod
+    def validate_failure_date(cls, value: date) -> date:
+        today = date.today()
+
+        # Reject future dates because MARA investigates actual failures.
+        if value > today:
+            raise ValueError("Failure date cannot be in the future.")
+
+        # Apply MARA's configured maximum age for the current failure.
+        # Calendar-year subtraction handles leap years correctly.
+        earliest_allowed = today - relativedelta(
+            years=MAX_FAILURE_AGE_YEARS
+        )
+
+        if value < earliest_allowed:
+            raise ValueError(
+                f"Failure date cannot be more than "
+                f"{MAX_FAILURE_AGE_YEARS} years old."
+            )
+
+        return value
+
+    @field_validator("abend_code")
+    @classmethod
+    def validate_abend_code(cls, value: str) -> str:
+        # Normalize the abend code to uppercase.
+        code = value.strip().upper()
+
+        # System abend: S followed by 1–4 hexadecimal characters.
+        if code.startswith("S"):
+            if re.fullmatch(r"S[0-9A-F]{1,4}", code) is None:
+                raise ValueError(
+                    "System abend code must be S followed by 1–4 hexadecimal characters."
+                )
+            return code
+
+        # User abend: U followed by exactly four digits.
+        if code.startswith("U"):
+            if re.fullmatch(r"U[0-9]{4}", code) is None:
+                raise ValueError(
+                    "User abend code must be U followed by 4 digits."
+                )
+            return code
+
+        raise ValueError("Abend Code must start with S or U.")
+
 
 class Response(BaseModel):
     # Required field & must provide a value
@@ -57,6 +127,11 @@ class Response(BaseModel):
     ] = Field(
             description="Outcome of MARA's evidence-based investigation"
         )
+
+    # Required field
+    sources: list[str] = Field(
+        description="IDs of retrieved records used to support the investigation"
+    )
         # COMPLETED_RESEARCH means MARA finished examining available evidence.
         # It does not mean the batch job has been recovered.
         # Insufficeint_Evidence == MARA could not establish an evidence-supported probable cause
@@ -89,6 +164,8 @@ def build_mara_prompt(request: Request) -> str:
     6. Do not perform or authorize production changes or job restarts.
     7. Distinguish the established technical meaning of an abend code from the root cause of this specific job failure.
        Do not invent abend-code definitions. If uncertain about an abend code's meaning, explicitly state the uncertainty.
+    8. Only cite record IDs that were actually retrieved and supplied as evidence.
+       Never invent historical incident IDs or source references.
 
     Known Mainframe System Abend Definitions:
     - S0C7: Data Exception. Often caused by invalid decimal numeric data during arithmetic processing.
@@ -101,13 +178,17 @@ def build_mara_prompt(request: Request) -> str:
 
 
     Output Requirements:
-    Return only a valid JSON object containing these six fields:
+    Return only a valid JSON object containing these seven fields:
     - failure_summary: string
     - probable_root_cause: string or null
     - evidence_and_historical_findings: list of strings
     - confidence_level: HIGH, MEDIUM, LOW, or NOT_ASSESSED
     - recommended_next_steps: non-empty list of strings
     - investigation_status: COMPLETED_RESEARCH or INSUFFICIENT_EVIDENCE
+    - sources: list of retrieved record IDs used to support the investigation; [] if none were retrieved
+
+    Only include record IDs that were actually retrieved and provided as evidence.
+    Never invent source IDs.
 
     When investigation_status is INSUFFICIENT_EVIDENCE:
     - Set probable_root_cause to null.
@@ -120,10 +201,10 @@ def build_mara_prompt(request: Request) -> str:
     """
     return prompt
 
-    def solve(request: Request) -> Response:
-        """Investigate a mainframe batch job failure and return a structured research report."""
+def solve(request: Request) -> Response:
+    """Investigate a mainframe batch job failure and return a structured research report."""
 
-        prompt = build_mara_prompt(request)
+    prompt = build_mara_prompt(request)
 
     #raise NotImplementedError("MARA investigation logic will be implemented in TC1 Step 8")
 
@@ -148,7 +229,11 @@ def build_mara_prompt(request: Request) -> str:
 
     response_data = json.loads(llm_response)
 
-    # Validate the LLM output against MARA's six-field Response schema.
+    # No historical records are retrieved in the current implementation.
+    # Do not accept unverified source IDs from the LLM.
+    response_data["sources"] = []
+
+    # Validate the LLM output against MARA's seven-field Response schema.
     validated_response = Response.model_validate(response_data) # model_validate() is being inherited from base model
 
     # Return the validated investigation report.
