@@ -13,11 +13,25 @@ If you cannot name what you did not do, you did not choose.
 | --- | --- | --- | --- | --- |
 | TC1 | **Fixed retrieval pipeline with one bounded retry.** MARA will follow a predefined workflow: receive batch job failure details, retrieve evidence from synthetic knowledge sources, analyze the findings, and generate an investigation report. If the first search produces insufficient evidence, MARA will perform one alternative search before recommending SME escalation. | **Fully agentic or multi-agent architecture.** I considered a Supervisor Agent coordinating specialized Engineer Agents that could identify affected applications, dynamically select investigation tools, retrieve relevant evidence, and adjust their investigation based on intermediate findings. | MARA's initial scope is limited to known mainframe batch job abends. The job name, failure date, and abend code provide a clear starting point for a predictable investigation workflow. A fixed pipeline is simpler to develop, test, debug, and maintain, with more predictable latency and cost. An agentic workflow could add latency to time-sensitive investigations, especially critical-path jobs with a 5–10-minute escalation window. A multi-agent architecture would introduce unnecessary complexity at this stage. | I would reconsider an agentic architecture if MARA expands into incidents where the affected application or technical component is unknown, such as rising MQ queue depth or increased Failed Customer Interactions (FCI). These situations may require dynamically selecting tools, knowledge sources, and investigation steps. I would compare accuracy, evidence quality, latency, and cost before changing the architecture. |
 | TC2 — S3 | **Use the hosted model as MARA's current prototype baseline while evaluating local open-weight models for future deployment.** Measured local inference: LiquidAI/LFM2.5-350M, 42.61 seconds for 80 generated tokens on MacBook Pro M1 Pro CPU (16 GB unified memory). Measured hosted inference: Anthropic Claude Sonnet 5, 3.17 seconds, 73 input and 80 output tokens, using provider-managed infrastructure. | **Immediately replacing the hosted model with the 350M local model.** | The hosted model was faster in this experiment and produced more coherent text, but this was not a like-for-like comparison. The hosted provider rejected temperature 0.7, limiting sampling control. Local inference provides direct access to weights and logits and keeps inference on-device. These are measured prototype observations, not production performance claims. API pricing was not measured and must be obtained from current provider pricing. | Reconsider the model architecture after evaluating an instruction-tuned 4B-class local model for MARA using evidence-grounding accuracy, schema compliance, latency, memory consumption, data-security constraints, and operating cost. |
-| 3 | <!-- retrieval approach --> | <!-- --> | <!-- --> | <!-- --> |
+
+| TC3 — Step 2 | **Kept the Request and Response models from TC1 and added a required `sources` field.** I also kept the existing `solve()` function signature. Since MARA is not retrieving historical incidents yet, I set `sources` to an empty list. I added validation for job name, failure date, and abend code, along with error messages in the UI. | **Changing the original schema completely or allowing the LLM to return source IDs without checking them.** I also decided not to depend only on UI validation. | I wanted to reuse what I built in TC1 instead of starting over. The `sources` field will help us identify which historical records support MARA's findings. Since retrieval is not implemented yet, returning an empty list is safer than showing incorrect sources. I added input validation to reduce mistakes before MARA starts its investigation. The five-year date limit is a starting value that we can change later. | Once retrieval is implemented, I will update MARA to return the actual record IDs used in the investigation. I may also change the validation rules based on feedback from production support engineers and our organization's requirements. |
+
+| 3 | **Hybrid Retrieval (BM25 + Dense + RRF).** I selected this approach for MARA because it can find incidents using both exact job names and natural-language questions. | **Agentic RAG and Dynamic Context Injection (DCI).** I tested both approaches in Step 3. | MARA needs to search for exact values like job names, abend codes, and error messages, but also handle questions about similar incidents. Our corpus has only 15 synthetic records, so DCI works well today, but Hybrid gives us a better starting point as the dataset grows. With top-5 retrieval, Hybrid found the expected records for all nine answerable test questions. | I would reconsider if a larger dataset shows that Agentic RAG or DCI gives better results at an acceptable cost and response time. If the corpus stays small, I would revisit DCI because it is simpler. |
 | 5 | <!-- agent architecture --> | <!-- --> | <!-- --> | <!-- --> |
 | 6 | <!-- guardrail level --> | <!-- --> | <!-- --> | <!-- --> |
 | 7 | <!-- memory type --> | <!-- --> | <!-- --> | <!-- --> |
 | 8 | <!-- model --> | <!-- --> | <!-- --> | <!-- --> |
+
+### TC3 — Non-Text Content
+
+1. **Visual or text in pixels?** MARA currently uses text-based JSONL records. If we add JES spool screenshots or scanned incident reports, most of that information would be text displayed as pixels.
+
+2. **Numbers available only in pixels?** I would find the screenshot using its incident metadata, use OCR or a vision model to read the abend code or other values, and check the extracted information against the original image before using it.
+
+3. **Descriptions or one-time parsing?** I would extract and save the text and metadata when an image is added to the corpus, rather than processing the same image every time someone asks a question.
+
+4. **Is a transcript enough for audio or video?** MARA does not have audio or video records today. A transcript might be enough for spoken incident explanations, but I would keep the original recording if screen activity or visual details are needed.
+
 
 ### TC1 — Strongest Counterargument for an Agentic Architecture
 
@@ -59,3 +73,9 @@ Once feedback is received, I will document:
 - What application changes were made, or why no change was needed.
 
 I will not treat my own evaluation results as independent user feedback.
+
+**Decision: Defer independent stakeholder validation**
+
+I decided to defer TC3 Step 6 because I do not yet have approval to test MARA with colleagues in the enterprise environment.
+
+No stakeholder-driven changes were made to the retrieval system because independent feedback has not been collected. I will revisit this step when an approved testing option becomes available.

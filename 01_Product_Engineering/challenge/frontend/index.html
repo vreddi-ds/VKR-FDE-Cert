@@ -135,27 +135,56 @@
 
       <form id="investigation-form">
         <div>
-          <label for="job-name">Job Name</label>
-          <input id="job-name" type="text" placeholder="PAYBATCH45" required />
+          <label for="job-name">
+            <span style="color: #b91c1c;" aria-hidden="true">*</span>
+            Job Name
+          </label>
+          <input id="job-name" type="text"
+                placeholder="TESTJOB1"
+                maxlength="8"
+                required />
+
+          <!-- Show Job Name validation errors below the field -->
+          <small id="job-name-error"
+                role="alert"
+                style="color: #b91c1c; display: none;">
+          </small>
         </div>
 
         <div>
-          <label for="failure-date">Failure Date (MM/DD/YYYY)</label>
-          <input id="failure-date" type="text" placeholder="10/10/2026" required />
+          <label for="failure-date">
+            <span style="color: #b91c1c;" aria-hidden="true">*</span>
+            Failure Date
+          </label>
+          <input id="failure-date" type="text" placeholder="MM/DD/YYYY" required disabled/>
+
+          <!-- Display date validation errors directly below the input -->
+          <small id="failure-date-error"
+                role="alert"
+                style="color: #b91c1c; display: none;">
+          </small>
         </div>
 
         <div>
-          <label for="abend-code">Abend Code</label>
-          <input id="abend-code" type="text" placeholder="S0C7" required />
+          <label for="abend-code">
+            <span style="color: #b91c1c;" aria-hidden="true">*</span>
+            Abend Code
+          </label>
+          <input id="abend-code" type="text" placeholder="S0C7" required disabled/>
+          <!-- Display Abend Code validation errors beneath the input -->
+            <small id="abend-code-error"
+                  role="alert"
+                  style="color: #b91c1c; display: none;">
+            </small>
         </div>
 
         <div>
           <label for="jes-messages">JES Messages (Optional)</label>
-          <textarea id="jes-messages" rows="5"
+          <textarea id="jes-messages" rows="5" disabled
             placeholder="Enter synthetic JES messages, one per line"></textarea>
         </div>
 
-        <button type="submit">Investigate Abend</button>
+        <button type="submit" disabled>Investigate Abend</button>
       </form>
 
       <h3>Investigation Results</h3>
@@ -205,9 +234,239 @@
       // MARA batch investigation form elements
       const investigationForm = document.getElementById("investigation-form");
       const jobNameInput = document.getElementById("job-name");
+      // Display validation messages beneath the Job Name field.
+      const jobNameError = document.getElementById("job-name-error");
+
+      // Validate the job name entered by the engineer.
+      function validateJobNameInput() {
+        // Mainframe job names are conventionally represented in uppercase.
+        // Normalize the engineer's input before validating it.
+        const jobName = jobNameInput.value.trim().toUpperCase();
+
+        // Display the normalized name in the textbox.
+        jobNameInput.value = jobName;
+
+        // Clear the previous error message.
+        jobNameError.textContent = "";
+        jobNameError.style.display = "none";
+
+        // Disable Failure Date until Job Name passes validation.
+        failureDateInput.disabled = true;
+        // An invalid Job Name also locks every dependent field.
+        // This prevents submission using previously validated values.
+        abendCodeInput.disabled = true;
+        jesMessagesInput.disabled = true;
+        investigationForm.querySelector('button[type="submit"]').disabled = true;
+
+        if (jobName.length === 0) {
+            jobNameError.textContent = "Job Name is required.";
+            jobNameError.style.display = "block";
+            return false;
+        }
+
+        if (jobName.length > 8) {
+            jobNameError.textContent = "Job Name cannot exceed 8 characters.";
+            jobNameError.style.display = "block";
+            return false;
+        }
+
+        // Job Name is valid, so allow the engineer to enter Failure Date.
+        failureDateInput.disabled = false;
+        // Recheck any Failure Date and Abend Code already entered.
+        if (failureDateInput.value.trim().length > 0) {
+            validateFailureDateInput();
+        }
+        return true;
+      }
+
+      // Run validation whenever the Job Name changes.
+      jobNameInput.addEventListener("input", validateJobNameInput);
+      // Prevent moving forward when Job Name is empty or invalid.
+      jobNameInput.addEventListener("keydown", (event) => {
+          if (event.key === "Tab" || event.key === "Enter") {
+              if (validateJobNameInput() === false) {
+                  event.preventDefault();
+                  jobNameInput.focus();
+              }
+          }
+      });
+
       const failureDateInput = document.getElementById("failure-date");
+      // Load the allowable date range from MARA's backend.
+      // The backend remains the single source of truth.
+      const failureDateError = document.getElementById("failure-date-error");
+      let dateValidationConfig = null;
+
+      async function loadDateValidationConfig() {
+        try {
+          const response = await fetch("/config/date-validation");
+
+          if (!response.ok) {
+            throw new Error("Date validation configuration unavailable");
+          }
+
+          dateValidationConfig = await response.json();
+        } catch (error) {
+          console.error("Could not load date validation limits:", error);
+        }
+      }
+
+      await loadDateValidationConfig();
+      // Validate the failure date as the engineer types.
+      // Use the allowable range supplied by MARA's backend.
+      function validateFailureDateInput() {
+        const value = failureDateInput.value.trim();
+
+        // Clear previous messages.
+        failureDateError.textContent = "";
+        failureDateError.style.display = "none";
+
+        // Keep subsequent fields disabled until the date is valid.
+        abendCodeInput.disabled = true;
+        jesMessagesInput.disabled = true;
+        investigationForm.querySelector('button[type="submit"]').disabled = true;
+
+        // A complete failure date must use MM/DD/YYYY format.
+        const isValidDateFormat = /^\d{2}\/\d{2}\/\d{4}$/.test(value);
+
+        if (isValidDateFormat === false) {
+            if (value.length > 0) {
+                failureDateError.textContent =
+                    "Enter the failure date in MM/DD/YYYY format.";
+                failureDateError.style.display = "block";
+            }
+            return false;
+        }
+
+        try {
+          const isoDate = convertDateToISO(value);
+
+          if (!dateValidationConfig) {
+            throw new Error("Date validation settings unavailable.");
+          }
+
+          if (isoDate > dateValidationConfig.max_date) {
+            throw new Error("Failure date cannot be in the future.");
+          }
+
+          if (isoDate < dateValidationConfig.min_date) {
+            throw new Error(
+              `Failure date cannot be more than ${dateValidationConfig.max_age_years} years old.`
+            );
+          }
+          // Date passed validation. Enable the Abend Code field.
+          abendCodeInput.disabled = false;
+          // Recheck the Abend Code if the engineer already entered one.
+          if (abendCodeInput.value.trim().length > 0) {
+              validateAbendCodeInput();
+          }
+          return true;
+        } catch (error) {
+          failureDateError.textContent = error.message;
+          failureDateError.style.display = "block";
+          return false;
+        }
+      }
+
+      // Show or clear the error immediately after a complete date is entered.
+      failureDateInput.addEventListener("input", validateFailureDateInput);
+      // Validate Failure Date when the engineer presses Tab or Enter.
+      failureDateInput.addEventListener("keydown", (event) => {
+          if (event.key === "Tab" || event.key === "Enter") {
+              if (validateFailureDateInput() === false) {
+                  event.preventDefault();
+                  failureDateInput.focus();
+              }
+          }
+      });
       const abendCodeInput = document.getElementById("abend-code");
+      const abendCodeError = document.getElementById("abend-code-error");
       const jesMessagesInput = document.getElementById("jes-messages");
+
+      // Validate Abend Code and control the remaining form fields.
+      function validateAbendCodeInput() {
+          const abendCode = abendCodeInput.value.trim().toUpperCase();
+
+          // Normalize the displayed Abend Code to uppercase.
+          abendCodeInput.value = abendCode;
+
+          // Clear the previous validation message.
+          abendCodeError.textContent = "";
+          abendCodeError.style.display = "none";
+
+          // Keep the remaining controls disabled until Abend Code is valid.
+          jesMessagesInput.disabled = true;
+          investigationForm.querySelector('button[type="submit"]').disabled = true;
+
+          // Abend Code must contain between 1 and 5 characters.
+          // 1. Abend code is required.
+          if (abendCode.length === 0) {
+              abendCodeError.textContent = "Abend Code is required.";
+              abendCodeError.style.display = "block";
+              return false;
+          }
+          // 2. Abend code must start with S or U
+          const validPrefix = abendCode.startsWith("S") ||
+                    abendCode.startsWith("U");
+
+          if (validPrefix === false) {
+              abendCodeError.textContent = "Abend Code must start with S or U.";
+              abendCodeError.style.display = "block";
+              return false;
+          }
+          // 3. Abend Code cannot exceed 5 characters
+          if (abendCode.length > 5) {
+              abendCodeError.textContent =
+                  "Abend Code cannot exceed 5 characters.";
+              abendCodeError.style.display = "block";
+              return false;
+          }
+          // System abends: S followed by 1–4 hexadecimal characters.
+          // User abends: U followed by exactly 4 decimal digits.
+          // Validate System abend codes separately.
+          if (abendCode.startsWith("S")) {
+              const validSystemCode = /^S[0-9A-F]{1,4}$/.test(abendCode);
+
+              if (validSystemCode === false) {
+                  abendCodeError.textContent =
+                      "Enter a valid System abend code: S followed by 1–4 hexadecimal characters.";
+                  abendCodeError.style.display = "block";
+                  return false;
+              }
+          }
+
+          // Validate User abend codes separately.
+          if (abendCode.startsWith("U")) {
+              const validUserCode = /^U[0-9]{4}$/.test(abendCode);
+
+              if (validUserCode === false) {
+                  abendCodeError.textContent =
+                      "Enter a valid User abend code: U followed by 4 digits.";
+                  abendCodeError.style.display = "block";
+                  return false;
+              }
+          }
+
+          // All required fields have passed their individual checks.
+          jesMessagesInput.disabled = false;
+          investigationForm.querySelector('button[type="submit"]').disabled = false;
+
+          return true;
+      }
+
+      // Revalidate whenever the engineer changes the Abend Code.
+      abendCodeInput.addEventListener("input", validateAbendCodeInput);
+
+      // Check Abend Code when the engineer presses Tab or Enter.
+      abendCodeInput.addEventListener("keydown", (event) => {
+          if (event.key === "Tab" || event.key === "Enter") {
+              if (validateAbendCodeInput() === false) {
+                  event.preventDefault();
+                  abendCodeInput.focus();
+              }
+          }
+      });
+
       const investigationResult = document.getElementById("investigation-result");
 
       // Format the six MARA response fields as a readable report.
@@ -251,6 +510,11 @@
       // Handle MARA batch abend investigation submissions.
       investigationForm.addEventListener("submit", async (event) => {
         event.preventDefault(); // Prevent the browser from reloading the page.
+          // Never submit an investigation with an invalid failure date.
+        if (validateFailureDateInput() === false) {
+          failureDateInput.focus();
+          return;
+        }
 
         investigationResult.textContent = "MARA is investigating...";
 
@@ -276,6 +540,7 @@
 
           // The API returns a JSON string as its first output.
           const report = JSON.parse(result.data[0]);
+          // console.log("MARA sources:", report.sources);
 
           // TEMPORARY DEBUG: Inspect the raw MARA API response.
           // console.log("MARA API Response:", report);
@@ -338,7 +603,6 @@
         ) {
           throw new Error("Enter a valid calendar date.");
         }
-
         return `${year}-${month}-${day}`;
       }
 

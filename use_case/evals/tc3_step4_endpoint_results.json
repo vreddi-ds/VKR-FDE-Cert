@@ -1,0 +1,180 @@
+[
+  {
+    "id": "MARA-05",
+    "question": "Two IMS BMP jobs, CLAIMPROC07 and INVUPDT22, failed with U3303 abends. What caused the deadlocks in each case, which concurrent processes were involved, and what recovery considerations should Production Support follow?",
+    "response": {
+      "failure_summary": "Both CLAIMPROC07 and INVUPDT22 failed with U3303 abends due to IMS program isolation deadlocks detected during BMP processing, but the contending processes and resource types differed between the two incidents.",
+      "probable_root_cause": "CLAIMPROC07 (program CLMUPD03) deadlocked with online transaction CLMONL15 over the CLAIMHDR segment in database CLAIMDB2, and IMS selected the batch job as the deadlock victim (per DFS0583). INVUPDT22 (program INVBMP22) deadlocked with a concurrent batch job, INVRECON19, which held the INV-STOCK segment of database INVDB01 for an extended period during an unusually large reconciliation run, causing enqueue contention and automatic backout (per DFS2082I).",
+      "evidence_and_historical_findings": [
+        "CLAIMPROC07: JES diagnostic confirms U3303 in STEP0025, program CLMUPD03 [CLAIMPROC07].",
+        "CLAIMPROC07: DFS0583 identifies a program isolation deadlock with online transaction CLMONL15 over segment CLAIMHDR in database CLAIMDB2 [CLAIMPROC07].",
+        "CLAIMPROC07: IMS log review confirms CLMUPD03 was selected as the deadlock victim [CLAIMPROC07].",
+        "CLAIMPROC07: Historical note indicates prior batch-vs-online deadlocks on CLAIMDB2 were resolved via rescheduling [CLAIMPROC07].",
+        "INVUPDT22: JES diagnostic confirms U3303 in STEP0025, program INVBMP22 [INVUPDT22].",
+        "INVUPDT22: DFS2082I confirms a program isolation deadlock on PSB INVPSB03/PCB INVDB01 with automatic program backout [INVUPDT22].",
+        "INVUPDT22: Resource contention review identifies concurrent job INVRECON19 holding the INV-STOCK segment, causing enqueue contention [INVUPDT22].",
+        "INVUPDT22: Scheduler evidence confirms INVRECON19 held the segment for an extended duration due to an unusually large reconciliation batch, consistent with deadlock timing [INVUPDT22].",
+        "INVUPDT22: Historical outcome confirms restart succeeded only after INVRECON19 completed and released the segment [INVUPDT22].",
+        "The two incidents represent distinct deadlock patterns: batch-vs-online contention (CLAIMPROC07) versus batch-vs-batch contention (INVUPDT22), both resolved via IMS program isolation victim selection and subsequent restart after resource release."
+      ],
+      "confidence_level": "HIGH",
+      "recommended_next_steps": [
+        "Verify and preserve the DFS0583 and DFS2082I deadlock diagnostics for each job respectively.",
+        "For CLAIMPROC07, escalate to the IMS DBA/application SME for CLAIMDB2 and CLMONL15 to evaluate scheduling windows relative to online transaction activity.",
+        "For INVUPDT22, escalate to the IMS DBA to review scheduling overlap between INVRECON19 and INVUPDT22 and consider revised batch windows or segment-level contention controls.",
+        "Confirm that the contending process in each case (CLMONL15 for CLAIMPROC07; INVRECON19 for INVUPDT22) has released the held segment before any restart is attempted.",
+        "Do not independently modify IMS scheduling, resource definitions, or job scheduling windows; await authorized DBA/SME decisions.",
+        "Coordinate restart of each job with Operations only after confirmation that contention has cleared and any scheduling adjustments are authorized.",
+        "Document both deadlock findings, contending processes, and resolution outcomes separately in the incident record, noting the differing contention patterns (online vs. batch)."
+      ],
+      "investigation_status": "COMPLETED_RESEARCH",
+      "sources": [
+        "CLAIMPROC07",
+        "INVUPDT22"
+      ]
+    }
+  },
+  {
+    "id": "MARA-06",
+    "question": "An L1 Application Production Support Engineer is investigating job INVCTL19, which failed with U0071 in STEP0010. What caused the IMS PSB scheduling failure, which resources were unavailable, and what should Application Support recommend before coordinating a restart?",
+    "response": {
+      "failure_summary": "Batch job INVCTL19 failed with U0071 in STEP0010 when IMS BMP program INVBMP01 was unable to schedule PSB INVPSB01 because the configured concurrent schedule limit was already fully utilized by online transactions.",
+      "probable_root_cause": "The PSB pool limit of 2 for INVPSB01 was fully occupied by long-running online transactions at the time of the batch scheduling request, preventing INVBMP01 from scheduling and causing U0071.",
+      "evidence_and_historical_findings": [
+        "JES diagnostic identifies U0071 in STEP0010, program INVBMP01 (INVCTL19).",
+        "IMS diagnostic DFS555I identifies a PSB scheduling failure for INVPSB01 due to the concurrent schedule limit being reached (INVCTL19).",
+        "IMS resource review confirms the PSB pool limit was set to 2 and both slots were occupied by online transactions at the time of failure (INVCTL19).",
+        "Historical note confirms prior similar failures for INVPSB01 were resolved by either increasing the PSB pool limit or rescheduling batch execution to a lower-activity window (INVCTL19).",
+        "JES, IMS diagnostic, and resource review evidence are mutually consistent in identifying PSB pool exhaustion as the cause (INVCTL19)."
+      ],
+      "confidence_level": "HIGH",
+      "recommended_next_steps": [
+        "Verify and preserve the PSB scheduling diagnostic (DFS555I) and resource pool review for INVPSB01.",
+        "Escalate the PSB pool exhaustion finding to the IMS systems programmer responsible for PSB pool configuration.",
+        "Evaluate whether increasing the PSB pool limit or rescheduling INVCTL19 to a lower-activity window is appropriate, consistent with prior historical resolution for INVPSB01.",
+        "Do not independently modify IMS PSB pool configuration or control region parameters.",
+        "After an authorized configuration change or rescheduling decision, coordinate restart of INVCTL19 at STEP0010 with Operations.",
+        "Document the scheduling conflict, authorized decision, and resolution in the incident record."
+      ],
+      "investigation_status": "COMPLETED_RESEARCH",
+      "sources": [
+        "INVCTL19"
+      ]
+    }
+  },
+  {
+    "id": "MARA-07",
+    "question": "Job PAYBATCH45 failed with S0C7 on October 10, 2026. What was the exact root cause, which input record caused the failure, and what corrective action should Operations execute?",
+    "response": {
+      "failure_summary": "No retrieved evidence corresponds to a job named PAYBATCH45 failing on October 10, 2026. All retrieved sources pertain to different jobs (HRCOMP22, INVRECON14, INVTUPDT12, CLMEXTR07, INVCPROC08) with failure dates in November 2026.",
+      "probable_root_cause": null,
+      "evidence_and_historical_findings": [
+        "Source HRCOMP22 documents a 2026-11-07 S0C7 failure unrelated to PAYBATCH45.",
+        "Source INVRECON14 documents a 2026-11-05 S0C7 failure unrelated to PAYBATCH45.",
+        "Source INVTUPDT12 documents a 2026-11-05 U1204 failure unrelated to PAYBATCH45.",
+        "Source CLMEXTR07 documents a 2026-11-03 S0C7 failure unrelated to PAYBATCH45.",
+        "Source INVCPROC08 documents a 2026-11-03 S0C7 failure unrelated to PAYBATCH45.",
+        "No source contains the job name PAYBATCH45, the abend date 2026-10-10, or any related record, program, or dependency information."
+      ],
+      "confidence_level": "NOT_ASSESSED",
+      "recommended_next_steps": [
+        "Confirm the correct job name and failure date with the requester, as no matching incident record was found.",
+        "Search the incident repository specifically for job PAYBATCH45 and failure date 2026-10-10 to retrieve the appropriate JES and application diagnostics.",
+        "Do not proceed with root cause determination or corrective action recommendations until valid evidence for PAYBATCH45 is located.",
+        "If no record exists, escalate to the incident intake team to verify whether the incident was logged under a different job name or date."
+      ],
+      "investigation_status": "INSUFFICIENT_EVIDENCE",
+      "sources": []
+    }
+  },
+  {
+    "id": "MARA-08",
+    "question": "Job INVTUPDT12 failed with user abend U1204 during inventory processing. What upstream issue caused the failure, how was the input data corrected, and what evidence confirms that the subsequent restart was successful?",
+    "response": {
+      "failure_summary": "Batch job INVTUPDT12 failed with user abend U1204 in STEP0025 while program STKVALID performed record-format validation on inventory update file STK.WEEKLY.UPDATE.",
+      "probable_root_cause": "Record 00231 in STK.WEEKLY.UPDATE was truncated to 96 bytes instead of the required 120-byte fixed length, due to a truncated transmission segment from the upstream warehouse feed system.",
+      "evidence_and_historical_findings": [
+        "Synthetic JES diagnostic identifies U1204 in STEP0025, program STKVALID (INVTUPDT12).",
+        "Synthetic application diagnostic identifies the length mismatch at record 00231, actual 96 bytes versus expected 120 bytes (INVTUPDT12).",
+        "The layout review confirms the required fixed record length of 120 bytes, consistent with the detected validation failure (INVTUPDT12).",
+        "The dependency note traces the truncated record to a transmission issue in the upstream warehouse feed system (INVTUPDT12).",
+        "The recovery note confirms the warehouse feed team retransmitted the corrected segment, producing a corrected STK.WEEKLY.UPDATE file (INVTUPDT12).",
+        "The restart note confirms an authorized production engineer restarted the job at STEP0025 using the retransmitted file (INVTUPDT12).",
+        "The historical outcome confirms successful completion and accurate inventory reconciliation after restart (INVTUPDT12)."
+      ],
+      "confidence_level": "HIGH",
+      "recommended_next_steps": [
+        "Verify and preserve the truncated record, corrected retransmission, and restart evidence for the incident record.",
+        "Escalate the transmission truncation issue to the warehouse feed system support team to prevent recurrence.",
+        "Confirm with Operations that the restart point and retransmitted file were correctly applied before downstream processing.",
+        "Review inventory reconciliation results to confirm data integrity following the corrected restart.",
+        "Document the investigation, root cause, correction, and restart outcome in the incident record."
+      ],
+      "investigation_status": "COMPLETED_RESEARCH",
+      "sources": [
+        "INVTUPDT12"
+      ]
+    }
+  },
+  {
+    "id": "MARA-09",
+    "question": "During payroll processing, a batch job failed with an S0C7 abend because an employee deduction percentage contained the letter O instead of the digit 0. What caused this data error, how was it corrected, and what evidence confirmed successful recovery?",
+    "response": {
+      "failure_summary": "Batch job PAYDEDN27 abended with S0C7 in STEP0060, program DEDCALC, while computing employee deduction totals due to invalid numeric data in the input file.",
+      "probable_root_cause": "Record 00459 in DED.BIWEEKLY.FILE contained the invalid value 1O.5 in field DEDUCTION_PCT, a numeric DISPLAY field defined as PIC 9(2)V9. The letter O was entered in place of the digit 0 due to a manual data-entry error by an HR benefits coordinator.",
+      "evidence_and_historical_findings": [
+        "Synthetic JES diagnostic identifies S0C7 in STEP0060, program DEDCALC [PAYDEDN27].",
+        "Synthetic application diagnostic identifies the invalid value 1O.5 at record 00459, field DEDUCTION_PCT [PAYDEDN27].",
+        "The field layout confirms DEDUCTION_PCT requires numeric DISPLAY data (PIC 9(2)V9), consistent with the data exception [PAYDEDN27].",
+        "The investigation note traces the invalid character O to a manual data-entry error by an HR benefits coordinator [PAYDEDN27].",
+        "The correction note confirms the value was corrected to 10.5 in a revised copy of DED.BIWEEKLY.FILE and verified by the application SME [PAYDEDN27].",
+        "The restart note confirms an authorized production engineer restarted PAYDEDN27 at STEP0060 using the corrected file [PAYDEDN27].",
+        "The historical outcome confirms the restarted job completed successfully and deduction totals were verified as accurate in the post-run audit report [PAYDEDN27]."
+      ],
+      "confidence_level": "HIGH",
+      "recommended_next_steps": [
+        "Verify and preserve the invalid record, correction evidence, and restart details for the incident record.",
+        "Escalate the data-entry error pattern to HR benefits coordination for process review and prevention.",
+        "Confirm with Operations that the restart point and corrected file were properly applied before downstream payroll posting.",
+        "Review the post-run audit report to confirm deduction accuracy for all affected employees.",
+        "Document the investigation, correction, and restart outcome in the incident record."
+      ],
+      "investigation_status": "COMPLETED_RESEARCH",
+      "sources": [
+        "PAYDEDN27"
+      ]
+    }
+  },
+  {
+    "id": "MARA-10",
+    "question": "Across the synthetic batch-processing incidents, which downstream jobs experienced S0C7 abends because their upstream jobs produced invalid numeric data? Identify the upstream job, the data defect, and how the defect propagated to each downstream failure.",
+    "response": {
+      "failure_summary": "Three synthetic batch incidents (CLMEXTR07, HRCOMP22, INVRECON14) experienced S0C7 abends because downstream programs processed invalid numeric data that originated from upstream jobs and was passed through without intermediate validation.",
+      "probable_root_cause": "In each case, an upstream job produced a data defect in a numeric field\u2014either due to a source-system formatting change, a field-length conversion failure, or a mapping table omission\u2014and wrote the invalid value into an output dataset consumed directly by a downstream job with no intervening validation step, causing a data exception (S0C7) when the downstream program attempted numeric processing.",
+      "evidence_and_historical_findings": [
+        "CLMEXTR07: Upstream job CLMFEED02 (STEP0020, program CLMFMTPG) encountered a source-system formatting change and logged condition code 0004, warning that three records contained truncated numeric fields. Record position 88 in CLM.DAILY.EXTRACT contained the invalid value '4521-' in field CLAIM_AMOUNT (PIC 9(7) unsigned). CLMEXTR07 STEP0050 (program CLMVALPG) consumed this extract directly without intermediate validation, causing S0C7. [CLMEXTR07]",
+        "HRCOMP22: Prerequisite job HRCONV08 (STEP0010, program HRCONVPG) logged warning HRJ0450W indicating four employee records failed field-length conversion for BONUS_PCT and were written with the unconverted source value instead of being rejected. Record position 210 in COMP.CONVERTED.FILE contained the invalid value '1.75' in field BONUS_PCT (PIC 9(3)). The conversion warning was not treated as a job failure, allowing HRCOMP22 STEP0025 (program HRCOMPCALC) to process the flawed file, causing S0C7. [HRCOMP22]",
+        "INVRECON14: Prerequisite job INVADJ09 (STEP0015, program INVADJPG) logged message INVJ0231I indicating two warehouse records received a non-numeric adjustment code due to a mapping table omission. Record position 56 in STOCK.ADJUST.DAILY contained the invalid value '00R12' in field ADJ_QTY (PIC 9(5)). No validation step existed between INVADJ09 and INVRECON14 STEP0040 (program INVCALCPG), resulting in S0C7. [INVRECON14]",
+        "INVCPROC08 also failed with S0C7 due to an invalid packed-decimal value in INVOICE_TOTAL, but the evidence does not identify a named upstream job responsible for producing the defective record in INV.DAILY.FEED, so it cannot be classified as part of this upstream/downstream dependency-chain pattern. [INVCPROC08]",
+        "INVUPDT22 failed with abend code U3303 due to IMS program isolation deadlock contention with INVRECON19, which is unrelated to invalid numeric data or S0C7 abends and is excluded from this finding. [INVUPDT22]"
+      ],
+      "confidence_level": "HIGH",
+      "recommended_next_steps": [
+        "Escalate the three identified upstream data-defect sources (CLMFEED02, HRCONV08, INVADJ09) to their respective application SMEs for root-cause correction.",
+        "Recommend that application SMEs evaluate adding intermediate validation steps between each upstream job and its downstream consumer to prevent recurrence.",
+        "For HRCONV08, recommend review of whether conversion warnings should halt downstream processing rather than allow flawed files to proceed.",
+        "Confirm whether INVCPROC08's defective record originated from an identifiable upstream job; if evidence is insufficient, decline further root-cause attribution for that incident.",
+        "After required authorization, coordinate with Operations for correction of affected datasets and restart of the three downstream jobs (CLMEXTR07, HRCOMP22, INVRECON14).",
+        "Document all three dependency-chain findings, including the specific invalid values and PIC definitions, in the incident record."
+      ],
+      "investigation_status": "COMPLETED_RESEARCH",
+      "sources": [
+        "CLMEXTR07",
+        "HRCOMP22",
+        "INVRECON14",
+        "INVCPROC08",
+        "INVUPDT22"
+      ]
+    }
+  }
+]

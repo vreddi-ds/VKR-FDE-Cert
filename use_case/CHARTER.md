@@ -6,7 +6,7 @@
   template. That is on purpose.
 -->
 
-**Department:** Issuing Support 
+**Department:** Issuing Support
 
 **Working title:** Mainframe Abend Research Assistant (MARA)
 
@@ -14,7 +14,7 @@
 
 ## The problem
 
-**Who has it?** 
+**Who has it?**
 
 Level 1 Production Support Engineer
 
@@ -76,6 +76,12 @@ Mainframe Abend Research Assistant (MARA) is an evidence-grounded research and d
 | --- | --- |
 | **In** | The Level 1 Production Support Engineer provides three required inputs from the Operations notification: failed batch job name, failure date, and abend code. The engineer may optionally include one or more relevant JES error messages to provide additional investigation context. MARA uses these inputs to narrow its search and investigate the failure against its available knowledge base. |
 | **Out** | MARA generates a structured investigation report containing the failure summary, probable root cause, evidence and historical findings (including references to relevant JES messages, runbooks, knowledge base articles, and previous incidents), confidence level, recommended next steps, and investigation status. When sufficient evidence is unavailable, MARA explicitly reports "Insufficient Evidence" and identifies the additional information or escalation needed. Final remediation and restart decisions remain with the Production Support Engineer. |
+
+**TC3 Step 2 — Input validation and sources**
+
+I kept the same three required inputs from TC1 but added some basic validation. The Job Name can be 1–8 characters, the Failure Date must not be in the future or more than five years old, and the Abend Code must follow a valid System (`S`) or User (`U`) abend format. The five-year limit is a starting rule for the prototype and may change based on business requirements.
+
+I also added a required `sources` field to MARA's response so we can track which records support the investigation. Since historical retrieval is not implemented yet, MARA currently returns an empty list for this field. Once retrieval is added, the goal is to include the actual record IDs used in the investigation.
 
 ---
 
