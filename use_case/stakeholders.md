@@ -63,10 +63,22 @@ gap is more useful than a silent one.
 - Ask the three required feedback questions.
 - Document which golden examples the reviewer would reject and why.
 
-**Feedback received:** Awaiting feedbac.
+**Feedback received:** Awaiting feedback.
 
 **What I learned:** Pending actual feedback.
 
 **Next action:** Follow up with the colleague and record their comments in their own words.
 
 **Expected response:** May take several days, depending on availability.
+
+### TC3 Step 6 — Stakeholder Validation (Deferred)
+
+I was unable to complete independent stakeholder validation during TC3.
+
+MARA is based on a real Mainframe Production Support use case, but I do not currently have permission to introduce or test this prototype within my company's environment. I also do not want to ask colleagues to access an unapproved application using their personal devices.
+
+Although I work in Production Support and understand the investigation workflow, I am also developing MARA. My own testing would not count as independent stakeholder feedback.
+
+For now, I have completed technical testing using synthetic data, but real stakeholder validation remains pending.
+
+**Follow-up:** I will explore an appropriate, approved way to demonstrate MARA to a Production Support Engineer and collect five real questions and feedback. Until then, I will not claim that stakeholder validation has been completed.

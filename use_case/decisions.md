@@ -16,11 +16,22 @@ If you cannot name what you did not do, you did not choose.
 
 | TC3 — Step 2 | **Kept the Request and Response models from TC1 and added a required `sources` field.** I also kept the existing `solve()` function signature. Since MARA is not retrieving historical incidents yet, I set `sources` to an empty list. I added validation for job name, failure date, and abend code, along with error messages in the UI. | **Changing the original schema completely or allowing the LLM to return source IDs without checking them.** I also decided not to depend only on UI validation. | I wanted to reuse what I built in TC1 instead of starting over. The `sources` field will help us identify which historical records support MARA's findings. Since retrieval is not implemented yet, returning an empty list is safer than showing incorrect sources. I added input validation to reduce mistakes before MARA starts its investigation. The five-year date limit is a starting value that we can change later. | Once retrieval is implemented, I will update MARA to return the actual record IDs used in the investigation. I may also change the validation rules based on feedback from production support engineers and our organization's requirements. |
 
-| 3 | <!-- retrieval approach --> | <!-- --> | <!-- --> | <!-- --> |
+| 3 | **Hybrid Retrieval (BM25 + Dense + RRF).** I selected this approach for MARA because it can find incidents using both exact job names and natural-language questions. | **Agentic RAG and Dynamic Context Injection (DCI).** I tested both approaches in Step 3. | MARA needs to search for exact values like job names, abend codes, and error messages, but also handle questions about similar incidents. Our corpus has only 15 synthetic records, so DCI works well today, but Hybrid gives us a better starting point as the dataset grows. With top-5 retrieval, Hybrid found the expected records for all nine answerable test questions. | I would reconsider if a larger dataset shows that Agentic RAG or DCI gives better results at an acceptable cost and response time. If the corpus stays small, I would revisit DCI because it is simpler. |
 | 5 | <!-- agent architecture --> | <!-- --> | <!-- --> | <!-- --> |
 | 6 | <!-- guardrail level --> | <!-- --> | <!-- --> | <!-- --> |
 | 7 | <!-- memory type --> | <!-- --> | <!-- --> | <!-- --> |
 | 8 | <!-- model --> | <!-- --> | <!-- --> | <!-- --> |
+
+### TC3 — Non-Text Content
+
+1. **Visual or text in pixels?** MARA currently uses text-based JSONL records. If we add JES spool screenshots or scanned incident reports, most of that information would be text displayed as pixels.
+
+2. **Numbers available only in pixels?** I would find the screenshot using its incident metadata, use OCR or a vision model to read the abend code or other values, and check the extracted information against the original image before using it.
+
+3. **Descriptions or one-time parsing?** I would extract and save the text and metadata when an image is added to the corpus, rather than processing the same image every time someone asks a question.
+
+4. **Is a transcript enough for audio or video?** MARA does not have audio or video records today. A transcript might be enough for spoken incident explanations, but I would keep the original recording if screen activity or visual details are needed.
+
 
 ### TC1 — Strongest Counterargument for an Agentic Architecture
 
@@ -62,3 +73,9 @@ Once feedback is received, I will document:
 - What application changes were made, or why no change was needed.
 
 I will not treat my own evaluation results as independent user feedback.
+
+**Decision: Defer independent stakeholder validation**
+
+I decided to defer TC3 Step 6 because I do not yet have approval to test MARA with colleagues in the enterprise environment.
+
+No stakeholder-driven changes were made to the retrieval system because independent feedback has not been collected. I will revisit this step when an approved testing option becomes available.

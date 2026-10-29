@@ -1,0 +1,21 @@
+id,approach,favours,pass,cited_expected_page,calls,evidence_chars,latency_s,stopped
+MARA-01,Agentic RAG,either,True,True,2,8161,7.14,answer
+MARA-01,DCI MARA,either,True,True,1,2133,8.63,answer
+MARA-02,Agentic RAG,either,True,True,3,12241,11.7,answer
+MARA-02,DCI MARA,either,True,True,1,2588,8.02,answer
+MARA-03,Agentic RAG,either,True,True,2,8162,5.02,answer
+MARA-03,DCI MARA,either,True,True,1,2441,6.65,answer
+MARA-04,Agentic RAG,either,True,True,2,8164,12.38,answer
+MARA-04,DCI MARA,either,True,True,2,6314,11.23,answer
+MARA-05,Agentic RAG,either,True,True,2,8164,14.78,answer
+MARA-05,DCI MARA,either,True,True,2,5720,15.88,answer
+MARA-06,Agentic RAG,either,True,True,2,8161,10.14,answer
+MARA-06,DCI MARA,either,True,True,1,2869,9.46,answer
+MARA-07,Agentic RAG,either,True,,2,8164,5.18,answer
+MARA-07,DCI MARA,either,True,,3,3862,7.2,answer
+MARA-08,Agentic RAG,either,True,True,3,12250,9.06,answer
+MARA-08,DCI MARA,either,True,True,1,3164,7.7,answer
+MARA-09,Agentic RAG,either,True,True,3,12245,9.92,answer
+MARA-09,DCI MARA,either,True,True,1,2936,6.59,answer
+MARA-10,Agentic RAG,either,True,True,4,16326,16.55,answer
+MARA-10,DCI MARA,either,True,True,8,21413,19.52,answer

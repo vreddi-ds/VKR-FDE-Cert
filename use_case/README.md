@@ -403,3 +403,17 @@ Created 10 SME-reviewed retrieval questions in `use_case/evals/retrieval.jsonl`,
 Of the 10 questions, 6 are labelled `lookup`, 3 are labelled `multi-hop`, and 1 is labelled `decline`.
 
 Three questions (Q4, Q5, and Q10) require evidence from more than one incident record. Q10 requires three records, establishing a provisional minimum top-k of 3 for complete gold-record coverage, assuming one indexed document per incident.
+
+**TC3 — Insufficient Evidence:** For the PAYBATCH45 decline question, MARA returned `INSUFFICIENT_EVIDENCE`, a null probable root cause, `NOT_ASSESSED` confidence, and an empty sources list; it recommended gathering supporting evidence rather than authorizing recovery.
+
+## TC3 Step7 - Bring it to work
+
+**Workplace use case:** Level 1 Mainframe Production Support Engineers spend time searching previous batch abend incidents, JES logs, and support documentation to understand failures, identify probable causes, and determine safe next investigation steps. MARA could help make this research faster and more consistent by retrieving relevant historical incidents and providing answers supported by sources.
+
+**Data:** I would replace the synthetic MARA corpus with approved historical batch abend incident records, JES diagnostic information, and production support documentation. Most of this information would be text-based, but some documents may contain screenshots or scanned information that would need additional processing. All production data must remain within the company's approved environment.
+
+**Model/endpoint:** For this challenge, I used the local FastEmbed tokenizer with `BAAI/bge-small-en-v1.5`. In my company's environment, production data is not permitted to leave the company perimeter. Therefore, MARA would need to use enterprise-approved embedding and answer models hosted within the company's approved environment. I would need to evaluate suitable internal models or endpoints and obtain the necessary security and infrastructure approvals before deployment.
+
+**Access/approval:** I do not currently have permission to introduce MARA into the company environment. Before testing or deploying it at work, I would need approval from the appropriate security, infrastructure, and data owners. I would also need to confirm access controls, data-handling requirements, and the approved hosting environment.
+
+**Measured embedding-token count:** In Step 3, I measured **7,680 document tokens** across 15 synthetic incident texts using the local FastEmbed tokenizer for `BAAI/bge-small-en-v1.5`. This measurement excludes subsequent query tokens and is not an API billing measurement. I would use it as a starting point for understanding indexing and re-indexing effort, but the actual production corpus would need to be measured separately.
