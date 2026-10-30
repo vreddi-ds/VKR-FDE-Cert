@@ -97,13 +97,18 @@ uses `uv` rather than pip or conda.
 >
 > ```bash
 > uv sync --group local     # torch, transformers -- a few hundred MB
+> uv sync --group week3     # or `make setup-week W=3`: Week 3's notebook packages
 > ```
 >
 > Run a plain `uv sync` afterwards and that group is removed again, silently. A
 > notebook that worked yesterday then fails with `ModuleNotFoundError` and you
 > have done nothing wrong. `make setup` keeps the group if it is already
 > installed; if you run `uv` directly, use `uv sync --group local` to restore
-> it, or `uv sync --inexact` to sync without removing extras.
+> it, or `uv sync --inexact` to sync without removing optional groups.
+>
+> You only need a week's group to open its notebooks *without* `--sandbox`;
+> the sandboxed command every README quotes installs nothing into the root
+> environment. The notebooks page has the two commands side by side.
 
 ---
 
@@ -162,7 +167,10 @@ make nb F=01_Product_Engineering/sessions/S1_Enterprise_Dev_Environment.py
 ```
 
 That runs it in its own sandbox from the dependencies declared inside the file,
-so it works even if `make setup` failed.
+so it works even if `make setup` failed. On a managed Windows laptop that
+blocks new executables (error 4551), use `uv run python scripts/nb.py <file.py>`
+instead — [guide 5](../5_Your_Notebooks/README.md#two-ways-to-run-a-notebook)
+explains why.
 
 > **Prefer Jupyter?** Every notebook ships with an `.ipynb` next to it. Those are
 > **generated** from the `.py` — read or run them freely, but make edits in the

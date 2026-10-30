@@ -13,7 +13,9 @@ dependencies = [
     "python-dotenv>=1.2",      # helpers tier 1
     "litellm>=1.90",           # helpers tier 2
     "numpy>=2.0",              # from Week 3 on; the from-scratch retrieval math
-    "pillow>=11.0",            # Week 3 S2 generates its own image corpus
+    "pillow>=11.0",            # Week 3 S6 reads the charts and keyframes
+    "pydantic>=2",             # Week 1's challenge app and Week 2 S4 import it directly;
+                               # litellm brings it anyway, declared so a litellm change cannot remove it
 ]
 
 [dependency-groups]
@@ -33,6 +35,47 @@ local = [
     "transformers>=5.0",
     "accelerate>=1.0",
     "sentence-transformers>=5.0",   # the no-API embedding fallback
+]
+
+# The bonus harness appendix builds the same agent three ways. Only the
+# from-scratch one runs on the root environment; the two framework notebooks want
+# the LangChain stack, which nothing else here uses. Opt-in, exactly like `local`:
+#
+#     uv sync --group harness
+#
+# Also listed in [tool.fde].sandbox-only below, so `marimo edit --sandbox` and
+# `check_guarded.py` resolve them from each notebook's own PEP 723 block without
+# the group. Both entries are needed and they are not redundant: the group is for
+# the root environment, the allowlist is for the notebook.
+harness = [
+    "langgraph>=1.2",
+    "langgraph-checkpoint-sqlite>=3.1",
+    "langchain-openai>=1.5",
+    "deepagents>=0.7.6",
+]
+
+# One group per week whose notebooks need packages the root environment does not
+# ship. The notebooks run under `--sandbox` without any of these (each resolves
+# its own PEP 723 header); install a week's group when you open its notebooks
+# from the root environment instead, or to run `make execute` on that week.
+#
+#     make setup-week W=3        # uv sync --group week3
+#     make setup-all             # every optional group
+#
+# Pins are copied from the notebooks' headers, and scripts/mirrors.py fails CI
+# if a notebook and its group disagree.
+week3 = [
+    "rank-bm25>=0.2.2",           # S5 -- the chunk index on the Agentic RAG side
+    "pandas>=2.2",                # S5 -- the results table
+    "mcp>=1.2",                   # S5 -- litellm imports it when tools= is passed
+    "qdrant-client>=1.12",        # S6 -- the vector database, in-process
+    "fastembed>=0.7",             # S6 -- CLIP and the local text model as ONNX, no torch
+    "opencv-python-headless>=4.10",  # S6 -- keyframe sampling
+    "llama-index-core>=0.14",     # S6 -- the one-step opener (MultiModalVectorStoreIndex)
+]
+week4 = [
+    "deepeval>=4.3",              # S7 -- the one-step opener, GEval beside the hand judge, the baseline run
+    "mcp>=1.2",                   # S8 -- litellm imports it when tools= is passed, same as Week 3
 ]
 
 # ---------------------------------------------------------------------------
@@ -67,6 +110,20 @@ explicit = true
 torch = [{ index = "pytorch" }]
 
 [tool.fde]
+# Tier-2 helpers whose consuming week has not been copied into this repository
+# yet. `scripts/check_helpers.py` reports these as pending instead of failing,
+# and FAILS if one of them gains a consumer, so the entry has to be removed the
+# week it arrives. Keep this list empty in the repository every week ships from.
+helpers-pending = [
+    "adapter",      # fine-tuning
+    "embeddings",   # dense retrieval -- the Week 3 bonus swap; no session imports it yet
+    "guardrails",   # guardrails
+    "llm",          # the packaged model call, referenced from retrieval onward
+    "memory",       # memory
+    "tools",        # agent architecture
+    "trace",        # agent architecture
+]
+
 # Packages a notebook may declare in its PEP 723 block WITHOUT a matching entry in
 # [project.dependencies] above. Everything else must match the root exactly, so two
 # students on the same lesson get the same library versions.
@@ -76,9 +133,23 @@ torch = [{ index = "pytorch" }]
 sandbox-only = [
     "torch",
     "transformers",
-    "chromadb",
     "qdrant-client",
+    "fastembed",
+    "opencv-python-headless",
+    "rank-bm25",
+    "pandas",
+    "mcp",
+    "llama-index-core",
     "pydantic",
+    "deepeval",
+    # The harness sessions build the same agent three ways. Only the from-scratch
+    # one runs on the root environment; the two framework notebooks pull in the
+    # whole LangChain stack plus a checkpointer, which nothing else here wants and
+    # which would make every unrelated notebook slower to resolve.
+    "langgraph",
+    "langgraph-checkpoint-sqlite",
+    "langchain-openai",
+    "deepagents",
 ]
 
 [tool.uv]

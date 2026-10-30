@@ -54,7 +54,7 @@ However, MARA's initial batch-abend investigation scope does not currently justi
 
 ---
 
-The last column is the one people skip and the one clients ask about. "We chose
+The last column is the one people skip and the one people ask about. "We chose
 dense retrieval; we would switch to hybrid if exact-match queries went above ~20%
 of traffic" is an engineering position. "We chose dense retrieval" is a
 preference.
