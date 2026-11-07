@@ -325,6 +325,7 @@ def _(
     SEEDS,
     SingleTurnParams,
     framework_button,
+    json,
     mo,
     ui,
 ):
@@ -332,9 +333,20 @@ def _(
 
     # ---- Half one: your goldens, two systems, two answer-level metrics -------
     FRAMEWORK_DATASET = EvaluationDataset(
-        goldens=[Golden(input=seed["input"], expected_output=seed["output"]) for seed in SEEDS]
-    )
-    answer_key = {seed["input"]: seed["output"] for seed in SEEDS}
+        # goldens=[Golden(input=seed["input"], expected_output=seed["output"]) for seed in SEEDS]
+        goldens=[
+            Golden(
+                input=json.dumps(seed["input"]),
+                expected_output=json.dumps(seed["output"])
+            )
+            for seed in SEEDS
+        ]
+        )
+    # answer_key = {seed["input"]: seed["output"] for seed in SEEDS}
+    answer_key = {
+        json.dumps(seed["input"]): json.dumps(seed["output"])
+        for seed in SEEDS
+    }
     FRAMEWORK_SYSTEMS = {"echo the input": lambda text: text, "oracle (cheats)": lambda text: answer_key[text]}
 
     correctness_metric = GEval(
@@ -536,6 +548,7 @@ def _(mo):
     looking.
 
     **Answer:**
+    For MARA, I currently use synthetic incident records and 50 execution traces that I reviewed myself using my production support experience. I have not accessed or independently validated actual employer incident records for this project because of company data restrictions. Independent stakeholder validation is still pending.
 
     ---
     ## Task 3 — Deterministic metrics
@@ -616,6 +629,7 @@ def _(
     contains_required,
     declines,
     exact_match,
+    json,
     report,
     run_eval,
     token_f1,
@@ -629,11 +643,42 @@ def _(
     }
 
     # A deliberately terrible baseline: echo the input back.
-    baseline_results = run_eval(SEEDS, lambda x: x, SCORERS)
+    # baseline_results = run_eval(SEEDS, lambda x: x, SCORERS)
+
+    # The above will fail because Python dictionaries cannot be used as dictionary keys.
+    # Applied the JSON serialization approach.
+    baseline_results = run_eval(
+        [
+            {
+                **seed,
+                "input": json.dumps(seed["input"]),
+                "output": json.dumps(seed["output"])
+            }
+            for seed in SEEDS
+        ],
+        lambda x: x,
+        SCORERS
+    )
 
     # A cheating "perfect" system, to prove the harness can see a difference.
-    answer_by_input = {seed["input"]: seed["output"] for seed in SEEDS}
-    oracle_results = run_eval(SEEDS, lambda x: answer_by_input[x], SCORERS)
+    # answer_by_input = {seed["input"]: seed["output"] for seed in SEEDS}
+    answer_by_input = {
+        json.dumps(seed["input"]): json.dumps(seed["output"])
+        for seed in SEEDS
+    }
+    # oracle_results = run_eval(SEEDS, lambda x: answer_by_input[x], SCORERS)
+    oracle_results = run_eval(
+        [
+            {
+                **seed,
+                "input": json.dumps(seed["input"]),
+                "output": json.dumps(seed["output"])
+            }
+            for seed in SEEDS
+        ],
+        lambda x: answer_by_input[x],
+        SCORERS
+    )
 
     ui.table(
         [
@@ -690,7 +735,7 @@ def _(mo):
     no model at all, and what would the *oracle* answer be for one of them —
     the output that must score 1.0 on that scorer, or the scorer is wrong?
 
-    **Answer:**
+    **Answer:** One failure I worry about in MARA is reporting a successful restart as unknown because the retrieved evidence was truncated. A model-free scorer could check whether the answer includes the documented restart status. The oracle answer should correctly state that the restart was successful, based on the available incident evidence, and score 1.0.
 
     ---
     ## Task 4 — LLM as a judge, and the check before you believe it
@@ -836,13 +881,32 @@ def _(SEEDS, mo):
 
 
 @app.cell
-def _(EVALS, SEEDS, answer_by_input, judge, mo, np, read_jsonl, run_check, ui):
+def _(
+    EVALS,
+    SEEDS,
+    answer_by_input,
+    json,
+    judge,
+    mo,
+    np,
+    read_jsonl,
+    run_check,
+    ui,
+):
     mo.stop(not run_check.value, mo.md("*Press the button to check the judge.*"))
 
     # Separation: the judge over the two systems the harness already proved apart.
     with mo.status.spinner(title="Judging the echo and oracle outputs…"):
-        echo_judged = [judge(seed["input"], seed) for seed in SEEDS]
-        oracle_judged = [judge(answer_by_input[seed["input"]], seed) for seed in SEEDS]
+        # echo_judged = [judge(seed["input"], seed) for seed in SEEDS]
+        echo_judged = [
+            judge(json.dumps(seed["input"]), seed)
+            for seed in SEEDS
+        ]
+        # oracle_judged = [judge(answer_by_input[seed["input"]], seed) for seed in SEEDS]
+        oracle_judged = [
+            judge(answer_by_input[json.dumps(seed["input"])], seed)
+            for seed in SEEDS
+        ]
 
     SEPARATION = [
         {"outputs": "echo (known bad)", "judge mean": f"{np.mean(echo_judged):.2f}", "judge min–max": f"{min(echo_judged):.2f}–{max(echo_judged):.2f}"},
@@ -934,7 +998,7 @@ def _(mo):
     on — and should you score it at all, or record it as a signal and score
     something objective instead?
 
-    **Answer:**
+    **Answer:** For MARA, two Production Support Engineers might disagree on whether the recommended next steps are detailed enough to be useful. I would record that as a subjective signal rather than a strict PASS/FAIL score. Instead, I would score whether MARA correctly identifies the failure, supports its findings with evidence, and avoids recommending unauthorized recovery actions.
 
     ---
     ## Task 5 — Run the evals: improve the eval, then improve the app
@@ -1003,13 +1067,25 @@ def _(EVALS, SEEDS, json, np, re):
 
     CORRUPTIONS = ("number", "negate", "unsupported", "entity")
     corruption_rng = np.random.default_rng(7)
-    golden_names = sorted({name for seed in SEEDS for name in NAME_PATTERN.findall(seed["output"])})
+    # golden_names = sorted({name for seed in SEEDS for name in NAME_PATTERN.findall(seed["output"])})
+    golden_names = sorted({
+        name
+        for seed in SEEDS
+        for name in NAME_PATTERN.findall(json.dumps(seed["output"]))
+    })
 
     SYNTHETIC = []
     for seed in SEEDS:
         for failure_kind in CORRUPTIONS:
-            broken = corrupt(seed["output"], failure_kind, golden_names, corruption_rng)
-            if broken and broken != seed["output"]:
+            # broken = corrupt(seed["output"], failure_kind, golden_names, corruption_rng)
+            broken = corrupt(
+                json.dumps(seed["output"]),
+                failure_kind,
+                golden_names,
+                corruption_rng
+            )
+            # if broken and broken != seed["output"]:
+            if broken and broken != json.dumps(seed["output"]):
                 SYNTHETIC.append({**seed, "actual": broken, "label": "wrong", "failure": failure_kind})
 
     # This file is the challenge's deliverable: your generated failures, labelled.
@@ -1035,15 +1111,27 @@ def _(SEEDS, mo):
 
 
 @app.cell
-def _(CORRUPTIONS, SCORERS, SYNTHETIC, judge, mo, np, run_ladder, ui):
+def _(CORRUPTIONS, SCORERS, SYNTHETIC, json, judge, mo, np, run_ladder, ui):
     mo.stop(not run_ladder.value, mo.md("*Press the button to climb the ladder.*"))
 
     LADDER_SCORERS = {**SCORERS, "judge": judge}
 
     with mo.status.spinner(title="Scoring every broken answer, five ways…"):
+        # ladder_scores = {
+        #     # (row["failure"], name): fn(row["actual"], row)
+        #     (row["failure"], name): fn(
+        #         row["actual"],
+        #         {**row, "output": json.dumps(row["output"])}
+        #     )
+        #     for row in SYNTHETIC
+        #     for name, fn in LADDER_SCORERS.items()
+        # }
         ladder_scores = {
-            (row["failure"], name): fn(row["actual"], row)
-            for row in SYNTHETIC
+            (i, name): fn(
+                row["actual"],
+                {**row, "output": json.dumps(row["output"])}
+            )
+            for i, row in enumerate(SYNTHETIC)
             for name, fn in LADDER_SCORERS.items()
         }
 
@@ -1053,8 +1141,13 @@ def _(CORRUPTIONS, SCORERS, SYNTHETIC, judge, mo, np, run_ladder, ui):
         {
             "failure": failure_kind,
             "n": sum(1 for row in SYNTHETIC if row["failure"] == failure_kind),
+            # **{
+            #     name: f"{np.mean([score for (kind, scorer), score in ladder_scores.items() if kind == failure_kind and scorer == name]):.2f}"
             **{
-                name: f"{np.mean([score for (kind, scorer), score in ladder_scores.items() if kind == failure_kind and scorer == name]):.2f}"
+                name: f"{np.mean([
+                    score
+                    for (i, scorer), score in ladder_scores.items()
+                        if SYNTHETIC[i]["failure"] == failure_kind and scorer == name]):.2f}"
                 for name in LADDER_SCORERS
             },
         }
@@ -1199,7 +1292,7 @@ def _(mo):
 
 
 @app.cell
-def _(CFG, SEEDS, completion):
+def _(CFG, SEEDS, completion, json):
     BASIC_PROMPT = "{question}"
 
     # The elaborate prompt is generic on purpose: it works on any goldens. It says
@@ -1223,8 +1316,17 @@ def _(CFG, SEEDS, completion):
         """A system under test: one prompt template around the same model."""
 
         def system(question: str) -> str:
-            example = next(seed for seed in SEEDS if seed["input"] != question) if len(SEEDS) > 1 else SEEDS[0]
-            prompt = prompt_template.format(question=question, example_q=example["input"], example_a=example["output"])
+            # example = next(seed for seed in SEEDS if seed["input"] != question) if len(SEEDS) > 1 else SEEDS[0]
+            example = next(
+                seed for seed in SEEDS
+                if json.dumps(seed["input"]) != question
+            ) if len(SEEDS) > 1 else SEEDS[0]
+            # prompt = prompt_template.format(question=question, example_q=example["input"], example_a=example["output"])
+            prompt = prompt_template.format(
+                question=question,
+                example_q=json.dumps(example["input"]),
+                example_a=json.dumps(example["output"]),
+            )
             reply = completion(**CFG.kwargs(), timeout=600, messages=[{"role": "user", "content": prompt}])
             return (reply.choices[0].message.content or "").strip()
 
@@ -1237,28 +1339,24 @@ def _(CFG, SEEDS, completion):
 def _(SEEDS, mo):
     run_prompts = mo.ui.run_button(label=f"Run both prompts over the goldens and score them (about {4 * len(SEEDS)} model calls)")
     run_prompts
-    return (run_prompts,)
+    return
 
 
-@app.cell
-def _(
-    BASIC_PROMPT,
-    ELABORATE_PROMPT,
-    SCORERS,
-    SEEDS,
-    answer_with,
-    difference_ci,
-    judge,
-    mo,
-    np,
-    run_eval,
-    run_prompts,
-    ui,
-):
+app._unparsable_cell(
+    r"""
     mo.stop(not run_prompts.value, mo.md("*Press the button to compare the two prompts.*"))
 
     PROMPT_SCORERS = {**SCORERS, "judge": judge}
     with mo.status.spinner(title="Running both prompts, then scoring…"):
+        prompt_cases = [
+            {
+                **seed,
+                "input": json.dumps(seed["input"]),
+                "output": json.dumps(seed["output"]),
+            }
+            for seed in SEEDS
+        ]
+
         BASIC_RESULTS = run_eval(SEEDS, answer_with(BASIC_PROMPT), PROMPT_SCORERS)
         ELABORATE_RESULTS = run_eval(SEEDS, answer_with(ELABORATE_PROMPT), PROMPT_SCORERS)
 
@@ -1283,10 +1381,24 @@ def _(
         [
             ui.table(PROMPT_ROWS, title=f"One change to the app, every scorer, n={len(SEEDS)}"),
             ui.table(
-                [{"question": result.case["input"][:60], "basic": basic.actual[:80], "elaborate": result.actual[:80]} for basic, result in zip(BASIC_RESULTS, ELABORATE_RESULTS)][:4],
+                [{"question": str(result.case["input"])[:60],, "basic": basic.actual[:80], "elaborate": result.actual[:80]} for basic, result in zip(BASIC_RESULTS, ELABORATE_RESULTS)][:4],
                 title="The first four answers, side by side",
             ),
         ]
+    )
+    """,
+    name="_"
+)
+
+
+@app.cell
+def _(PROMPT_ROWS, SEEDS, ui):
+    # print("Basic results:", len(BASIC_RESULTS))
+    # print("Elaborate results:", len(ELABORATE_RESULTS))
+    # print("Comparison rows:", len(PROMPT_ROWS))
+    ui.table(
+        PROMPT_ROWS,
+        title=f"One change to the app, every scorer, n={len(SEEDS)}"
     )
     return
 
@@ -1329,7 +1441,7 @@ def _(mo):
     to. Then say how many cases you would need before the interval could show
     a five-point change, and what Loop A lets you do about it.
 
-    **Answer:**
+    **Answer:** For MARA, I would improve the retriever to prevent evidence truncation, especially when an incident includes a successful restart. I expect the judge correctness score to improve, which should help Production Support Engineers get more complete answers and reduce investigation time. The simulation showed that detecting a five-point improvement may require a few hundred cases, so I would use Loop A to generate more labelled failure cases and test whether the evaluation catches them.
 
     ---
     ## Task 6 — The framework in your harness, and Marcus's page
@@ -1379,6 +1491,7 @@ def _(
     contains_required,
     declines,
     exact_match,
+    json,
     mo,
     run_baseline,
     token_f1,
@@ -1403,7 +1516,12 @@ def _(
 
     def framework_correctness(actual: str, case: dict) -> float:
         baseline_correctness.measure(
-            LLMTestCase(input=case["input"], actual_output=actual, expected_output=case["output"])
+            # LLMTestCase(input=case["input"], actual_output=actual, expected_output=case["output"])
+            LLMTestCase(
+                input=json.dumps(case["input"]) if isinstance(case["input"], dict) else case["input"],
+                actual_output=actual,
+                expected_output=json.dumps(case["output"]) if isinstance(case["output"], dict) else case["output"],
+            )
         )
         return float(baseline_correctness.score or 0.0)
 
@@ -1415,7 +1533,11 @@ def _(
         "correctness (GEval)": framework_correctness,
     }
 
-    baseline_answer_key = {seed["input"]: seed["output"] for seed in SEEDS}
+    # baseline_answer_key = {seed["input"]: seed["output"] for seed in SEEDS}
+    baseline_answer_key = {
+        json.dumps(seed["input"]): json.dumps(seed["output"])
+        for seed in SEEDS
+    }
     # Echo and oracle bracket the range; the two prompts are the real systems.
     BASELINE_SYSTEMS = {
         "echo": lambda text: text,
@@ -1423,10 +1545,26 @@ def _(
         "elaborate prompt": answer_with(ELABORATE_PROMPT),
         "oracle": lambda text: baseline_answer_key[text],
     }
+    BASELINE_CASES = [
+        {
+            **seed,
+            "input": json.dumps(seed["input"]),
+            "output": json.dumps(seed["output"]),
+        }
+        for seed in SEEDS
+    ]
+    print("Golden cases:", len(BASELINE_CASES))
+    print("Input type:", type(BASELINE_CASES[0]["input"]).__name__)
+    print("Output type:", type(BASELINE_CASES[0]["output"]).__name__)
+    print(
+        "Oracle lookup:",
+        BASELINE_CASES[0]["input"] in baseline_answer_key
+    )
     BASELINE_REPORTS = {}
     for baseline_name, baseline_system in BASELINE_SYSTEMS.items():
         with mo.status.spinner(title=f"Harness: {baseline_name}…"):
-            BASELINE_REPORTS[baseline_name] = harness.run(SEEDS, baseline_system, BASELINE_SCORERS, name=baseline_name)
+            # BASELINE_REPORTS[baseline_name] = harness.run(SEEDS, baseline_system, BASELINE_SCORERS, name=baseline_name)
+            BASELINE_REPORTS[baseline_name] = harness.run(BASELINE_CASES, baseline_system, BASELINE_SCORERS, name=baseline_name)
 
     # The elaborate prompt is the system you would actually ship, so its run is the
     # baseline -- a real number with a real interval, not the oracle's 1.0.
@@ -1487,40 +1625,104 @@ def _(mo):
 
 @app.cell
 def _(mo):
-    claims_per_year = mo.ui.number(start=1000, stop=1_000_000, step=1000, value=20_000, label="claims per year")
-    average_claim_gbp = mo.ui.number(start=100, stop=100_000, step=100, value=1_800, label="average claim, £ (placeholder — use yours)")
-    wrong_pay_rate = mo.ui.number(start=0.0, stop=0.2, step=0.001, value=0.015, label="wrong-pay rate on the generated lapsed-policy set")
-    mo.hstack([claims_per_year, average_claim_gbp, wrong_pay_rate], gap=1)
-    return average_claim_gbp, claims_per_year, wrong_pay_rate
+    # claims_per_year = mo.ui.number(start=1000, stop=1_000_000, step=1000, value=20_000, label="claims per year")
+    # average_claim_gbp = mo.ui.number(start=100, stop=100_000, step=100, value=1_800, label="average claim, £ (placeholder — use yours)")
+    # wrong_pay_rate = mo.ui.number(start=0.0, stop=0.2, step=0.001, value=0.015, label="wrong-pay rate on the generated lapsed-policy set")
+    # mo.hstack([claims_per_year, average_claim_gbp, wrong_pay_rate], gap=1)
+    investigations_per_year = mo.ui.number(
+        start=100, stop=100000, step=100,
+        value=1000,
+        label="Mainframe abend investigations per year (assumption)"
+    )
+
+    minutes_saved_per_investigation = mo.ui.number(
+        start=0, stop=120, step=5,
+        value=15,
+        label="Minutes saved per investigation (assumption)"
+    )
+
+    engineer_hourly_cost = mo.ui.number(
+        start=0, stop=300, step=5,
+        value=75,
+        label="Engineer hourly cost in USD (assumption)"
+    )
+
+    mo.hstack(
+        [investigations_per_year, minutes_saved_per_investigation, engineer_hourly_cost],
+        gap=1
+    )
+    return (
+        engineer_hourly_cost,
+        investigations_per_year,
+        minutes_saved_per_investigation,
+    )
 
 
 @app.cell
 def _(
     BASELINE_REPORT,
-    average_claim_gbp,
     bootstrap_ci,
-    claims_per_year,
+    engineer_hourly_cost,
+    investigations_per_year,
+    minutes_saved_per_investigation,
     mo,
-    wrong_pay_rate,
 ):
-    # Agreement -> overturns. The judge's correctness score on the goldens stands
-    # in for agreement with adjudicated decisions (exact match is 0 for free text);
-    # the bootstrap puts the interval on it. Overturn rate = 1 - agreement.
-    agreement_scores = [result.scores.get("correctness (GEval)", 0.0) for result in BASELINE_REPORT.results]
+    # # Agreement -> overturns. The judge's correctness score on the goldens stands
+    # # in for agreement with adjudicated decisions (exact match is 0 for free text);
+    # # the bootstrap puts the interval on it. Overturn rate = 1 - agreement.
+    # agreement_scores = [result.scores.get("correctness (GEval)", 0.0) for result in BASELINE_REPORT.results]
+    # agreement, agreement_low, agreement_high = bootstrap_ci(agreement_scores)
+
+    # # Leakage -> pounds. Wrong-pay rate times claims times the average claim.
+    # leakage_gbp = wrong_pay_rate.value * claims_per_year.value * average_claim_gbp.value
+
+    # mo.md(
+    #     f"""
+    # | He asked | The number, in his units |
+    # | --- | --- |
+    # | **Overturns?** | agreement {agreement:.0%} on n={BASELINE_REPORT.n}, so an overturn rate of about **{1 - agreement:.0%}**, 95% CI **[{1 - agreement_high:.0%}, {1 - agreement_low:.0%}]** |
+    # | **Leakage?** | {wrong_pay_rate.value:.1%} wrong-pay on the generated lapsed-policy set × {claims_per_year.value:,} claims × £{average_claim_gbp.value:,.0f} ≈ **£{leakage_gbp:,.0f} a year** |
+    # | **How sure?** | the interval above is on n={BASELINE_REPORT.n}; to see a five-point change it needs a few hundred cases |
+
+    # <sub>Agreement is the framework's correctness score for the elaborate prompt on your goldens — a real number from the saved baseline, which is why the interval is wide. If it is low, the page is telling the truth: a prompt-only system without the policy wording does not match adjudicated decisions, and the next component to change is retrieval. Swap in whichever column your own decision rests on, and change the three boxes to your own figures.</sub>
+    # """
+    # )
+    # Evaluation quality from the saved baseline
+    agreement_scores = [
+        result.scores.get("correctness (GEval)", 0.0)
+        for result in BASELINE_REPORT.results
+    ]
+
     agreement, agreement_low, agreement_high = bootstrap_ci(agreement_scores)
 
-    # Leakage -> pounds. Wrong-pay rate times claims times the average claim.
-    leakage_gbp = wrong_pay_rate.value * claims_per_year.value * average_claim_gbp.value
+    # Estimated annual investigation time savings
+    annual_hours_saved = (
+        investigations_per_year.value
+        * minutes_saved_per_investigation.value
+        / 60
+    )
+
+    # Estimated annual labor value
+    annual_labor_value = annual_hours_saved * engineer_hourly_cost.value
 
     mo.md(
         f"""
-    | He asked | The number, in his units |
-    | --- | --- |
-    | **Overturns?** | agreement {agreement:.0%} on n={BASELINE_REPORT.n}, so an overturn rate of about **{1 - agreement:.0%}**, 95% CI **[{1 - agreement_high:.0%}, {1 - agreement_low:.0%}]** |
-    | **Leakage?** | {wrong_pay_rate.value:.1%} wrong-pay on the generated lapsed-policy set × {claims_per_year.value:,} claims × £{average_claim_gbp.value:,.0f} ≈ **£{leakage_gbp:,.0f} a year** |
-    | **How sure?** | the interval above is on n={BASELINE_REPORT.n}; to see a five-point change it needs a few hundred cases |
+    ## MARA — Estimated Business Impact
 
-    <sub>Agreement is the framework's correctness score for the elaborate prompt on your goldens — a real number from the saved baseline, which is why the interval is wide. If it is low, the page is telling the truth: a prompt-only system without the policy wording does not match adjudicated decisions, and the next component to change is retrieval. Swap in whichever column your own decision rests on, and change the three boxes to your own figures.</sub>
+    | Measure | Result |
+    | --- | ---: |
+    | Mainframe abend investigations per year | {investigations_per_year.value:,} |
+    | Assumed minutes saved per investigation | {minutes_saved_per_investigation.value} |
+    | **Estimated annual engineering hours saved** | **{annual_hours_saved:,.0f} hours** |
+    | **Estimated annual labor value** | **${annual_labor_value:,.0f}** |
+
+    ### Evaluation confidence
+
+    - **GEval correctness:** {agreement:.0%}
+    - **95% bootstrap confidence interval:** [{agreement_low:.0%}, {agreement_high:.0%}]
+    - **Golden cases evaluated:** {BASELINE_REPORT.n}
+
+    **Limitations:** Time savings and hourly costs are assumptions, not measured MARA results. GEval correctness measures agreement with reference answers on eight synthetic golden cases. It does not establish production accuracy or guarantee time savings.
     """
     )
     return

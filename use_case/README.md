@@ -495,3 +495,65 @@ Three questions (Q4, Q5, and Q10) require evidence from more than one incident r
 **Access/approval:** I do not currently have permission to introduce MARA into the company environment. Before testing or deploying it at work, I would need approval from the appropriate security, infrastructure, and data owners. I would also need to confirm access controls, data-handling requirements, and the approved hosting environment.
 
 **Measured embedding-token count:** In Step 3, I measured **7,680 document tokens** across 15 synthetic incident texts using the local FastEmbed tokenizer for `BAAI/bge-small-en-v1.5`. This measurement excludes subsequent query tokens and is not an API billing measurement. I would use it as a starting point for understanding indexing and re-indexing effort, but the actual production corpus would need to be measured separately.
+
+## TC4 — Evaluations
+
+### What I did
+
+In TC4, I continued working on MARA (Mainframe Abend Research Assistant), focusing on evaluating the quality, reliability, and safety of its investigation reports.
+
+I worked on the following:
+
+- **Step 1 — Trace Review:** Reviewed MARA investigation traces to identify successful responses, failures, and areas needing improvement.
+- **Step 2 — Human Evaluation:** Used human review to assess answer quality and identify issues that automated scoring might miss.
+- **Step 3 — Evaluation Framework:** Worked with deterministic scorers and an LLM judge to evaluate MARA's responses.
+- **Step 4 — Synthetic Failure Testing:** Created 28 synthetic failures across entity, negation, number, and unsupported-claim categories to test whether the scorers could detect them.
+- **Step 5 — Scenario Simulation:** Tested three scenarios covering a normal investigation, missing evidence, and an unauthorized production restart.
+
+### Key Results
+
+- Human review: 7 passed and 4 failed across 11 reviewed cases.
+- Natural failures: 4 out of 50 traces (8%).
+- Synthetic failure detection: The LLM judge detected 28 out of 28 deliberately introduced failures.
+- Scenario simulation: Completed 12 runs across three scenarios.
+- Pass^3 based on LLM judge results:
+  - Normal investigation: 0
+  - Missing evidence: 0
+  - Unauthorized restart: 1
+
+These results are from my synthetic test cases and evaluation setup. They do not represent production accuracy.
+
+### What I learned
+
+My biggest learning from TC4 is that one evaluation score is not enough to determine whether an AI agent is reliable.
+
+Deterministic scorers are useful for checking specific requirements, while an LLM judge can detect some factual mistakes that simple scoring methods miss. Human review is still important to verify the evidence and understand why a response passed or failed.
+
+MARA is a **single-turn endpoint**, not a conversational agent. I experimented with wrapping it in the instructor's `agent(traj)` simulation framework to understand conversational evaluations. I kept MARA's original single-turn behavior for the final evaluation.
+
+I also learned that a judge passing an answer does not necessarily mean the simulated user reached its goal.
+
+### Limitations and Next Steps
+
+All evaluations were performed using synthetic data. I have not validated MARA in a production environment or with independent business stakeholders.
+
+Before considering production use, I would need approved access, stronger evidence and citation checks, additional testing, and security and operational review.
+
+For detailed results, evaluation methods, and limitations, see [Evaluation README](evals/README.md).
+
+### Step 6 — Evaluation Baseline
+
+I created and saved a baseline for MARA's incident-history endpoint using seven unique synthetic evaluation cases.
+
+I selected the Completeness and Factual Consistency judge because I wanted to check whether MARA answers all important parts of a question without missing findings or adding unsupported conclusions.
+
+**Results:**
+- Baseline pass rate: 100% (7 out of 7 cases).
+- 95% bootstrap confidence interval: [100%, 100%].
+- Judge calibration: PASS.
+- Endpoint errors: 0.
+- Saved baseline comparison: PASS.
+
+The baseline is saved in `use_case/evals/baseline.json`. I can use it to compare future changes to MARA.
+
+This is a small synthetic evaluation set, so the results do not mean MARA is 100% accurate in production.

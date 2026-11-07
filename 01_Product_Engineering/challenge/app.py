@@ -136,8 +136,13 @@ def research_mainframe_incident_history(question: str) -> str:
     Rules:
     - Do not invent incidents, root causes, or diagnostic messages.
     - Cite supporting incident IDs in your findings.
+    - Only reference historical incidents when supported by retrieved evidence.
+    - Include every incident ID cited in the final research report in the sources field.
     - Do not authorize or perform production recovery.
     - If the evidence is insufficient, decline to establish a root cause.
+    - investigation_status must be exactly one of: "COMPLETED_RESEARCH" or "INSUFFICIENT_EVIDENCE".
+    - Use "INSUFFICIENT_EVIDENCE" when the incident cannot be identified or the evidence does not support a root cause.
+    - Do not create additional investigation_status values.
     - Return only valid JSON matching MARA's seven-field Response schema.
 
     Required JSON fields:

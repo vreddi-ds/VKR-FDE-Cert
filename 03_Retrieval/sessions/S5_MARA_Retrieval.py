@@ -426,7 +426,29 @@ def _(ask_model, json, time):
                 except Exception as exc:
                     result = f"(tool error: {type(exc).__name__}: {exc})"
                 chars += len(result)
-                trace.append({"tool": name, "args": args, "chars": len(result)})
+                trace.append({
+                        "tool": name,
+                        "args": args,
+                        "chars": len(result),
+                        "source_ids": (
+                            [
+                                line[1:-1]
+                                for line in result.splitlines()
+                                if line.startswith("[")
+                                and line.endswith("]")
+                                and "#s" in line
+                            ]
+                            if name == "search_chunks"
+                            else (
+                                [args["page"]]
+                                if name == "read_page"
+                                and isinstance(args.get("page"), str)
+                                and not result.startswith("(unknown page:")
+                                else []
+                            )
+                        ),
+                        "retrieved_text": result
+                    })
                 messages.append({"role": "tool", "tool_call_id": call["id"], "content": result})
         return {"answer": "(max turns reached)", "trace": trace, "evidence_chars": chars,
                 "latency_s": time.perf_counter() - started, "stopped": "max_turns"}
@@ -473,6 +495,140 @@ def _(
         FIRST_PANEL = mo.callout(mo.md("Press the button to run the first eval case through both tool sets."), kind="info")
 
     FIRST_PANEL
+    return
+
+
+@app.cell
+def _(DATA, mo):
+
+    import json as tc4_json
+    from datetime import datetime as tc4_datetime, timezone as tc4_timezone
+
+    # Keep TC4 separate from the existing TC3 evaluation.
+    tc4_questions_path = DATA / "evals" / "tc4_new_questions.jsonl"
+    tc4_output_path = DATA / "evals" / "tc4_new_traces.json"
+
+    tc4_questions = [
+        tc4_json.loads(line)
+        for line in tc4_questions_path.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+
+    # Validate the questions before running any model calls.
+    tc4_ids = [case["id"] for case in tc4_questions]
+
+    if len(tc4_questions) != 15:
+        raise ValueError(
+            f"Expected 15 TC4 questions; found {len(tc4_questions)}"
+        )
+
+    if len(set(tc4_ids)) != len(tc4_ids):
+        raise ValueError("Duplicate TC4 question IDs found")
+
+    if any(
+        not isinstance(case.get("question"), str)
+        or not case["question"].strip()
+        for case in tc4_questions
+    ):
+        raise ValueError("Every TC4 question must contain nonempty question text")
+
+    tc4_run_button = mo.ui.run_button(
+        label="Run TC4 — 15 new questions × 2 approaches"
+    )
+
+    mo.vstack([
+        mo.md("### TC4 Step 1 — Failure discovery"),
+        mo.md(
+            "**15 new questions × 2 approaches = 30 executions.** "
+            "Existing TC3 questions and results remain unchanged."
+        ),
+        tc4_run_button,
+    ])
+
+    return (
+        tc4_datetime,
+        tc4_json,
+        tc4_output_path,
+        tc4_questions,
+        tc4_run_button,
+        tc4_timezone,
+    )
+
+
+@app.cell
+def _(
+    DCI_FUNCS,
+    DCI_TOOLS,
+    RAG_FUNCS,
+    RAG_TOOLS,
+    mo,
+    run_agent,
+    tc4_datetime,
+    tc4_json,
+    tc4_output_path,
+    tc4_questions,
+    tc4_run_button,
+    tc4_timezone,
+):
+
+    if tc4_run_button.value:
+
+        if tc4_output_path.exists():
+            raise FileExistsError(
+                f"TC4 output already exists: {tc4_output_path}. "
+                "Preserve the existing traces before starting another run."
+            )
+
+        tc4_traces = []
+
+        with mo.status.spinner(
+            title="Running TC4 failure-discovery evaluations..."
+        ):
+            for tc4_case in tc4_questions:
+                for tc4_approach, tc4_tools, tc4_funcs in [
+                    ("Agentic RAG", RAG_TOOLS, RAG_FUNCS),
+                    ("DCI MARA", DCI_TOOLS, DCI_FUNCS),
+                ]:
+                    tc4_result = run_agent(
+                        tc4_case["question"],
+                        tc4_tools,
+                        tc4_funcs,
+                    )
+
+                    tc4_traces.append({
+                        "id": tc4_case["id"],
+                        "question": tc4_case["question"],
+                        "approach": tc4_approach,
+                        "answer": tc4_result["answer"],
+                        "trace": tc4_result["trace"],
+                        "evidence_chars": tc4_result["evidence_chars"],
+                        "latency_s": tc4_result["latency_s"],
+                        "stopped": tc4_result["stopped"],
+                        "executed_at_utc": tc4_datetime.now(
+                            tc4_timezone.utc
+                        ).isoformat(),
+                    })
+
+                    # Save each completed execution atomically.
+                    tc4_temp_path = tc4_output_path.with_suffix(".json.tmp")
+                    tc4_temp_path.write_text(
+                        tc4_json.dumps(
+                            tc4_traces,
+                            indent=2,
+                            ensure_ascii=False,
+                        ),
+                        encoding="utf-8",
+                    )
+                    tc4_temp_path.replace(tc4_output_path)
+
+        mo.md(
+            f"**Completed {len(tc4_traces)} executions.** "
+            f"Saved to `{tc4_output_path}`."
+        )
+
+    else:
+        mo.md("TC4 execution has not started.")
+
     return
 
 

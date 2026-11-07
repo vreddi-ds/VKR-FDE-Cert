@@ -1,0 +1,44 @@
+{
+  "judge_model": "anthropic/claude-haiku-4-5-20251001",
+  "rubric_failure": "MARA-08",
+  "calibration": {
+    "accepted": 1.0,
+    "wrong": 0.0,
+    "passed": true
+  },
+  "echo_mean": 0.75,
+  "oracle_mean": 1.0,
+  "mara_mean": 1.0,
+  "separation": 0.25,
+  "echo_scores": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    0.0,
+    0.0,
+    1.0,
+    1.0
+  ],
+  "oracle_scores": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "mara_scores": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "agreement": "not checked"
+}

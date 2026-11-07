@@ -1,0 +1,646 @@
+[
+  {
+    "case_id": 1,
+    "job_name": "PAYPST21",
+    "failure_mode": "number",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9945652173913043,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 2,
+    "job_name": "PAYPST21",
+    "failure_mode": "negate",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.997289972899729,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 3,
+    "job_name": "PAYPST21",
+    "failure_mode": "unsupported",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9787234042553191,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 4,
+    "job_name": "PAYPST21",
+    "failure_mode": "entity",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9891304347826086,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 5,
+    "job_name": "BATCHD13",
+    "failure_mode": "negate",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9979959919839679,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 6,
+    "job_name": "BATCHD13",
+    "failure_mode": "unsupported",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9822485207100593,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 7,
+    "job_name": "BATCHD13",
+    "failure_mode": "entity",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9919678714859438,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 8,
+    "job_name": "BATCHD06",
+    "failure_mode": "number",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9924242424242424,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 9,
+    "job_name": "BATCHD06",
+    "failure_mode": "negate",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9962264150943396,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 10,
+    "job_name": "BATCHD06",
+    "failure_mode": "unsupported",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9705882352941176,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 11,
+    "job_name": "BATCHD06",
+    "failure_mode": "entity",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9848484848484849,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 12,
+    "job_name": "BATCHD09",
+    "failure_mode": "negate",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.998165137614679,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 13,
+    "job_name": "BATCHD09",
+    "failure_mode": "unsupported",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9819494584837545,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 14,
+    "job_name": "BATCHD09",
+    "failure_mode": "entity",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9926470588235294,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 15,
+    "job_name": "PAYBCH45",
+    "failure_mode": "number",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9942528735632183,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 16,
+    "job_name": "PAYBCH45",
+    "failure_mode": "negate",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9971346704871061,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 17,
+    "job_name": "PAYBCH45",
+    "failure_mode": "unsupported",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9720670391061452,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 18,
+    "job_name": "PAYBCH45",
+    "failure_mode": "entity",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9942528735632183,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 19,
+    "job_name": "PAYLOD22",
+    "failure_mode": "negate",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9971181556195965,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 20,
+    "job_name": "PAYLOD22",
+    "failure_mode": "unsupported",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9774011299435028,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 21,
+    "job_name": "PAYLOD22",
+    "failure_mode": "entity",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9884393063583815,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 22,
+    "job_name": "BATCHD07",
+    "failure_mode": "negate",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9976133651551313,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 23,
+    "job_name": "BATCHD07",
+    "failure_mode": "unsupported",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9812206572769953,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 24,
+    "job_name": "BATCHD07",
+    "failure_mode": "entity",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9952153110047847,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 25,
+    "job_name": "BATCHD08",
+    "failure_mode": "number",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9956521739130435,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 26,
+    "job_name": "BATCHD08",
+    "failure_mode": "negate",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9978308026030369,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 27,
+    "job_name": "BATCHD08",
+    "failure_mode": "unsupported",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.9829059829059829,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  },
+  {
+    "case_id": 28,
+    "job_name": "BATCHD08",
+    "failure_mode": "entity",
+    "scores": {
+      "exact_match": 0.0,
+      "token_f1": 0.991304347826087,
+      "contains_required": 1.0,
+      "declines": 1.0,
+      "required_facts": 1.0,
+      "answer_consistency": 1.0,
+      "answer_completion": 1.0
+    },
+    "detected": {
+      "exact_match": true,
+      "token_f1": false,
+      "contains_required": false,
+      "declines": false,
+      "required_facts": false,
+      "answer_consistency": false,
+      "answer_completion": false
+    }
+  }
+]
