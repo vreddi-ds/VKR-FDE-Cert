@@ -1,0 +1,224 @@
+{
+  "rubric": "answer completeness and factual consistency",
+  "judge_model": "anthropic/claude-haiku-4-5-20251001",
+  "results": [
+    {
+      "case_id": 1,
+      "job_name": "PAYPST21",
+      "failure_mode": "number",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 2,
+      "job_name": "PAYPST21",
+      "failure_mode": "negate",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 3,
+      "job_name": "PAYPST21",
+      "failure_mode": "unsupported",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 4,
+      "job_name": "PAYPST21",
+      "failure_mode": "entity",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 5,
+      "job_name": "BATCHD13",
+      "failure_mode": "negate",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 6,
+      "job_name": "BATCHD13",
+      "failure_mode": "unsupported",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 7,
+      "job_name": "BATCHD13",
+      "failure_mode": "entity",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 8,
+      "job_name": "BATCHD06",
+      "failure_mode": "number",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 9,
+      "job_name": "BATCHD06",
+      "failure_mode": "negate",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 10,
+      "job_name": "BATCHD06",
+      "failure_mode": "unsupported",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 11,
+      "job_name": "BATCHD06",
+      "failure_mode": "entity",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 12,
+      "job_name": "BATCHD09",
+      "failure_mode": "negate",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 13,
+      "job_name": "BATCHD09",
+      "failure_mode": "unsupported",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 14,
+      "job_name": "BATCHD09",
+      "failure_mode": "entity",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 15,
+      "job_name": "PAYBCH45",
+      "failure_mode": "number",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 16,
+      "job_name": "PAYBCH45",
+      "failure_mode": "negate",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 17,
+      "job_name": "PAYBCH45",
+      "failure_mode": "unsupported",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 18,
+      "job_name": "PAYBCH45",
+      "failure_mode": "entity",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 19,
+      "job_name": "PAYLOD22",
+      "failure_mode": "negate",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 20,
+      "job_name": "PAYLOD22",
+      "failure_mode": "unsupported",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 21,
+      "job_name": "PAYLOD22",
+      "failure_mode": "entity",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 22,
+      "job_name": "BATCHD07",
+      "failure_mode": "negate",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 23,
+      "job_name": "BATCHD07",
+      "failure_mode": "unsupported",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 24,
+      "job_name": "BATCHD07",
+      "failure_mode": "entity",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 25,
+      "job_name": "BATCHD08",
+      "failure_mode": "number",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 26,
+      "job_name": "BATCHD08",
+      "failure_mode": "negate",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 27,
+      "job_name": "BATCHD08",
+      "failure_mode": "unsupported",
+      "judge_score": 0.0,
+      "detected": true
+    },
+    {
+      "case_id": 28,
+      "job_name": "BATCHD08",
+      "failure_mode": "entity",
+      "judge_score": 0.0,
+      "detected": true
+    }
+  ],
+  "detection_by_failure_mode": {
+    "entity": {
+      "detected": 8,
+      "total": 8,
+      "detection_rate": 1.0
+    },
+    "negate": {
+      "detected": 8,
+      "total": 8,
+      "detection_rate": 1.0
+    },
+    "number": {
+      "detected": 4,
+      "total": 4,
+      "detection_rate": 1.0
+    },
+    "unsupported": {
+      "detected": 8,
+      "total": 8,
+      "detection_rate": 1.0
+    }
+  }
+}

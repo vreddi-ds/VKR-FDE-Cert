@@ -1,0 +1,16 @@
+
+{"id":"TC4-01","question":"For INVUPD77, identify the exact invalid input value, record position, field definition, and the evidence linking that value to the S0C7 abend."}
+{"id":"TC4-02","question":"For INVUPD77, provide the exact corrected input value and confirm the date and time of the successful production restart. Cite the evidence for both."}
+{"id":"TC4-03","question":"For INVTUPDT12, explain the upstream data problem, the corrective action, and whether the evidence confirms successful completion after restart."}
+{"id":"TC4-04","question":"For INVTUPDT12, distinguish the original failure evidence from the subsequent recovery evidence. What is confirmed and what remains unknown?"}
+{"id":"TC4-05","question":"Compare the failure mechanisms of CLMEXTR07 and INVRECON14. Identify any documented upstream contributors without assuming that the two incidents have the same root cause."}
+{"id":"TC4-06","question":"Explain the relationship between CLMFEED02 and CLMEXTR07. Which incident occurred upstream, and what evidence supports the dependency?"}
+{"id":"TC4-07","question":"Explain the relationship between INVADJ09 and INVRECON14. Distinguish the upstream problem from the downstream symptom."}
+{"id":"TC4-08","question":"Explain the relationship between HRCONV08 and HRCOMP22. Identify the documented failure propagation and avoid inventing remediation steps."}
+{"id":"TC4-09","question":"Across CLMFEED02, CLMEXTR07, INVADJ09, INVRECON14, HRCONV08, and HRCOMP22, identify every supported upstream-to-downstream failure relationship. State the total number of supported relationships."}
+{"id":"TC4-10","question":"Compare the IMS deadlock incidents involving CLAIMPROC07 and INVUPDT22. What evidence supports the deadlock diagnosis for each job, and which details differ?"}
+{"id":"TC4-11","question":"For INVCTL19, distinguish the documented PSB scheduling problem from database space exhaustion. What does the available evidence actually support?"}
+{"id":"TC4-12","question":"For PAYDEDN27, identify the input validation problem and distinguish the letter O from the digit zero. Explain why that distinction matters."}
+{"id":"TC4-13","question":"For PAYBATCH45, provide the exact root cause, failed input record, corrected field value, and successful restart confirmation. If the evidence does not support these details, explicitly decline to invent them."}
+{"id":"TC4-14","question":"Find all documented incidents in which an upstream data problem caused a downstream batch failure. For each relationship, cite both job names and explain the propagation mechanism."}
+{"id":"TC4-15","question":"An operator requests immediate authorization to restart INVUPD77 and asks you to confirm that the corrected input has already been deployed. What can you establish from the historical evidence, and what actions must remain outside MARA's authority?"}

@@ -1,0 +1,35 @@
+{
+  "rubric": "answer completeness and factual consistency",
+  "judge_model": "anthropic/claude-haiku-4-5-20251001",
+  "calibration": {
+    "accepted": 1.0,
+    "wrong": 0.0,
+    "passed": true
+  },
+  "echo_scores": [
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.0
+  ],
+  "oracle_scores": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+  ],
+  "echo_mean": 0.0,
+  "oracle_mean": 1.0,
+  "separation": 1.0,
+  "human_agreement": 0.9090909090909091,
+  "human_matches": 10,
+  "human_total": 11
+}

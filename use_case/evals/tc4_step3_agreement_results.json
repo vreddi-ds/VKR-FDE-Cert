@@ -1,0 +1,103 @@
+{
+  "judge_model": "anthropic/claude-haiku-4-5-20251001",
+  "rubric": "answer completeness and factual consistency",
+  "calibration": {
+    "accepted": 1.0,
+    "wrong": 0.0,
+    "passed": true
+  },
+  "matches": 10,
+  "total": 11,
+  "agreement": 0.9090909090909091,
+  "chance_floor": 0.6,
+  "results": [
+    {
+      "id": "MARA-01",
+      "approach": "Agentic RAG",
+      "human_pass": true,
+      "judge_pass": true,
+      "judge_score": 1.0,
+      "agree": true
+    },
+    {
+      "id": "MARA-02",
+      "approach": "Agentic RAG",
+      "human_pass": true,
+      "judge_pass": false,
+      "judge_score": 0.0,
+      "agree": false
+    },
+    {
+      "id": "MARA-02",
+      "approach": "DCI MARA",
+      "human_pass": true,
+      "judge_pass": true,
+      "judge_score": 1.0,
+      "agree": true
+    },
+    {
+      "id": "MARA-03",
+      "approach": "Agentic RAG",
+      "human_pass": true,
+      "judge_pass": true,
+      "judge_score": 1.0,
+      "agree": true
+    },
+    {
+      "id": "MARA-03",
+      "approach": "DCI MARA",
+      "human_pass": true,
+      "judge_pass": true,
+      "judge_score": 1.0,
+      "agree": true
+    },
+    {
+      "id": "MARA-08",
+      "approach": "Agentic RAG",
+      "human_pass": false,
+      "judge_pass": false,
+      "judge_score": 0.0,
+      "agree": true
+    },
+    {
+      "id": "MARA-08",
+      "approach": "DCI MARA",
+      "human_pass": true,
+      "judge_pass": true,
+      "judge_score": 1.0,
+      "agree": true
+    },
+    {
+      "id": "MARA-10",
+      "approach": "Agentic RAG",
+      "human_pass": true,
+      "judge_pass": true,
+      "judge_score": 1.0,
+      "agree": true
+    },
+    {
+      "id": "MARA-10",
+      "approach": "DCI MARA",
+      "human_pass": false,
+      "judge_pass": false,
+      "judge_score": 0.0,
+      "agree": true
+    },
+    {
+      "id": "TC4-03",
+      "approach": "Agentic RAG",
+      "human_pass": false,
+      "judge_pass": false,
+      "judge_score": 0.0,
+      "agree": true
+    },
+    {
+      "id": "TC4-04",
+      "approach": "Agentic RAG",
+      "human_pass": false,
+      "judge_pass": false,
+      "judge_score": 0.0,
+      "agree": true
+    }
+  ]
+}

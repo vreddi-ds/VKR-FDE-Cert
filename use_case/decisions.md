@@ -79,3 +79,66 @@ I will not treat my own evaluation results as independent user feedback.
 I decided to defer TC3 Step 6 because I do not yet have approval to test MARA with colleagues in the enterprise environment.
 
 No stakeholder-driven changes were made to the retrieval system because independent feedback has not been collected. I will revisit this step when an approved testing option becomes available.
+
+### TC4-Step1: Evaluation Results, Human Scoring, and Citation Traceability Limitations
+
+**Evaluation scope**
+
+For TC4 Step 1, I reviewed 50 execution traces covering 25 evaluation questions across two retrieval approaches: Agentic RAG and DCI MARA.
+
+- 20 existing execution traces from TC3 (10 questions × 2 approaches).
+- 30 new execution traces from TC4 (15 questions × 2 approaches).
+
+I used synthetic incident records and the saved execution traces to evaluate the factual correctness, completeness, and evidence-grounding of MARA's answers.
+
+**Evaluation findings**
+
+I identified four failed executions across the 50 traces, giving an observed failure rate of 8%.
+
+- MARA-08 — Agentic RAG: Incomplete retrieval evidence caused MARA to miss a documented successful restart outcome.
+- MARA-10 — DCI MARA: The answer contained an internal inconsistency when counting upstream-to-downstream failure relationships.
+- TC4-03 — Agentic RAG: Repeated retrieval calls exhausted the agent's turn limit without producing an answer.
+- TC4-04 — Agentic RAG: Truncated retrieval evidence caused MARA to incorrectly report a documented successful restart outcome as unknown.
+
+Of the 30 new TC4 executions, 28 passed my review and 2 failed. I did not find additional substantive failures that justified a FAIL score.
+
+The retrieval truncation issue appeared in multiple executions. Although these were separate failed executions, they shared a common underlying problem: Agentic RAG could find the correct incident but could not always retrieve the complete evidence needed to answer the question.
+
+**Human-scoring decision**
+
+The challenge requested 20 human-scored outputs, with at least one-third being failures (a minimum of 7 FAIL results).
+
+My review identified only four supported failures across all 50 execution traces. I am closing this evaluation review with the actual findings rather than generating additional executions or reporting unsupported failures.
+
+The required failure-stratified sample was therefore not achieved. The number of formally recorded human scores is tracked separately in `human_scores.jsonl`.
+
+**Citation traceability limitation**
+
+In TC3, I implemented source identifiers for retrieved chunks and pages. Agentic RAG returns chunk identifiers, and DCI reads incident pages by name.
+
+My citation coverage check verifies whether MARA's answer mentions the expected incident record IDs. However, this does not prove that every factual claim is supported by the specific retrieved passage.
+
+For TC4, I checked the reviewed answers against the synthetic reference records for factual correctness. I did not independently verify claim-by-claim citations against the exact retrieved text from every historical execution.
+
+**Lessons learned**
+
+I learned that:
+
+- Finding the correct incident record does not guarantee that the agent has retrieved all the relevant evidence.
+- Retrieval truncation can cause different failures, including an exhausted agent loop or an incomplete answer.
+- Multiple failed executions can share the same underlying failure pattern.
+- A correct decline due to missing evidence should be treated as a PASS, not a failure.
+- Factual correctness and citation traceability are related but separate evaluation dimensions.
+
+**Future improvement**
+
+I would like to improve Agentic RAG so that it can retrieve a complete incident record when the initial chunk does not contain enough evidence. I also want to strengthen claim-level citation verification and add more challenging evaluation cases to better test the system's limitations.
+
+### TC4 Step 6 — Evaluation Baseline Decision
+
+| Field | Decision |
+|---|---|
+| **Decision** | I selected Completeness and Factual Consistency as the headline scorer for MARA's incident-history endpoint. The baseline passed 7/7 cases (100%), with a 95% bootstrap CI of [100%, 100%]. |
+| **What I rejected** | I did not select Answer Relevancy as the headline because a relevant answer can still omit important findings or contradict the reference. My selected judge passed calibration. |
+| **Why** | This scorer addresses the missing findings and factual inconsistencies documented in `failures.md`, including MARA-08 and MARA-10. It does not measure production accuracy, operational volume spikes, or performance on unseen incidents. |
+| **What would change my mind** | I would reconsider the headline scorer if new held-out evaluations or human reviews show it misses important failures, or if another calibrated scorer provides better coverage of the documented failure cases. |
