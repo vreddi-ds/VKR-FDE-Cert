@@ -2,6 +2,10 @@
 
 **Application:** MARA — Mainframe Abend Research Assistant
 
+### TC5 — What Changed After Instructor Feedback
+
+After my previous MARA demo, I revised the presentation to focus more on the production support problem, evidence quality, and measurable results instead of spending too much time explaining the technology stack. I also added an A/B comparison of UTCP/FastMCP and Direct Tool Calling, measured response size, token usage, and latency, and selected Direct Tool Calling for the current single-caller use case. During testing, I found that the outer agent could add unsupported recovery recommendations, so I implemented deterministic rendering of MARA's seven structured report fields and verified that both implementations preserved the original recommendations and supporting source IDs. I will also demonstrate a known failure and clearly explain that investigation-time savings and production accuracy have not yet been independently validated.
+
 **Demo:** [Watch the 4-minute MARA demonstration] https://www.loom.com/share/50185b79c7134e13bb97496abef9ec03
 
 **Overview:** MARA helps Level 1 Production Support Engineers investigate mainframe batch job failures using synthetic JES messages. It provides evidence-based findings, confidence levels, and recommended next steps while keeping recovery decisions with authorized personnel.
@@ -557,3 +561,119 @@ I selected the Completeness and Factual Consistency judge because I wanted to ch
 The baseline is saved in `use_case/evals/baseline.json`. I can use it to compare future changes to MARA.
 
 This is a small synthetic evaluation set, so the results do not mean MARA is 100% accurate in production.
+
+## Step 4 — Measure Both Implementations at Demo Scale
+
+### Objective
+
+I compared two MARA agent implementations using the same two requests:
+
+- **Implementation A:** FastMCP/OpenAPI tool calling.
+- **Implementation B:** Direct Python tool calling.
+
+The first request investigated one mainframe incident (`INVUPD77`, S0C7). The second investigated two independent incidents (`INVUPD77`, S0C7, and `CLAIMSX12`, U1204), requiring separate capability calls.
+
+I measured model calls, capability calls, total execution time, and token usage. Both implementations used the same underlying MARA research API.
+
+### Measurement Results
+
+| Implementation | Request | Model Calls | Capability Calls | Seconds | Total Tokens |
+|---|---|---:|---:|---:|---:|
+| A — FastMCP/OpenAPI | Single capability | 3 | 1 | 13.36 | 9,141 |
+| B — Direct Python | Single capability | 3 | 1 | 15.71 | 9,376 |
+| A — FastMCP/OpenAPI | Multiple capabilities | 4 | 2 | 25.34 | 17,750 |
+| B — Direct Python | Multiple capabilities | 4 | 2 | 26.54 | 18,028 |
+
+**Measurement notes:**
+
+- Model calls include both the outer Claude agent and MARA's internal Claude calls. The single-capability tests used 2 outer + 1 internal call; the multiple-capability tests used 2 outer + 2 internal calls.
+- Capability calls count actual invocations of `research_mara`.
+- Seconds represent end-to-end wall-clock execution time.
+- Total tokens include input and output tokens from both the outer agent and MARA's internal model.
+- Each scenario was executed once per implementation. These results are individual measurements, not performance averages.
+
+### Parallel Tool-Call Finding
+
+In the single-capability tests, Claude emitted **1 tool call** in its first response for both implementations.
+
+In the multiple-capability tests, Claude emitted **2 tool calls in its first response** for both implementations, measured using `len(message.tool_calls)`.
+
+This confirms that Claude can request multiple tool calls in one model turn. However, my Python agent executes those calls sequentially using `await`, not concurrently.
+
+I kept sequential execution because it was simpler to debug, allowed consistent A/B measurements, and avoided introducing concurrency as another variable. Concurrent execution remains a possible future improvement for independent investigations.
+
+### Capability-Call Visibility
+
+Both implementations successfully recorded the actual number of capability invocations.
+
+Implementation A uses an in-process FastMCP server, so its middleware counter can observe the tool calls. Implementation B uses a direct Python counter.
+
+I did not encounter the zero-counter visibility issue described in the challenge. However, if FastMCP were deployed as a separate server process, the current in-process counter would not automatically observe calls occurring inside that process. Additional server-side instrumentation would be needed.
+
+### Findings
+
+Both implementations successfully completed the single-capability and multiple-capability requests.
+
+In these runs, Implementation A used slightly fewer tokens and completed faster than Implementation B:
+
+- **Single capability:** 235 fewer tokens and 2.35 seconds faster.
+- **Multiple capabilities:** 278 fewer tokens and 1.20 seconds faster.
+
+These differences are observations from one run per scenario. They do not establish that FastMCP is generally faster or more token-efficient.
+
+Both implementations returned the expected root-cause details for the two incidents. Both multi-capability answers also flagged a `CLAIMSX12` versus `CLAIMX12` naming discrepancy in the underlying results. This needs separate verification and was not treated as a confirmed job-name match.
+
+### Conclusion
+
+Both implementations worked for the tested scenarios. FastMCP/OpenAPI provides a standardized way to expose capabilities, while direct Python tool calling provides a simpler integration path.
+
+For this TC5 comparison, I demonstrated that both approaches support multiple capability invocations, recorded their model and capability calls, and measured their execution time and token usage.
+
+The current architecture uses sequential tool execution. Parallel execution and performance testing at larger scale remain future work.
+
+### Saved Test Results
+
+The measurement outputs are stored in:
+
+- `05_Agent_Architecture/challenge/results/A_INVUPD77_final_renderer.json`
+- `05_Agent_Architecture/challenge/results/B_INVUPD77_final_renderer.json`
+- `05_Agent_Architecture/challenge/results/A_multi_capability.json`
+- `05_Agent_Architecture/challenge/results/B_multi_capability.json`
+
+### Step 5 — Real Response Size and Scaling
+
+I measured both MARA implementations using the synthetic incident question: "Why did INVUPD77 fail with S0C7?"
+
+| Metric | A — UTCP/FastMCP | B — Direct Tool Calling |
+|---|---:|---:|
+| Structured response size | 1,879 bytes | 1,662 bytes |
+| Capability calls per request | 1 | 1 |
+| Outer model calls | 2 | 2 |
+| Internal MARA model calls | 1 | 1 |
+| Outer input tokens | 1,833 | 1,798 |
+| Outer output tokens | 717 | 869 |
+| Internal input tokens | 5,927 | 5,927 |
+| Internal output tokens | 765 | 663 |
+| **Combined tokens** | **9,242** | **9,257** |
+| Wall time | 14.10 seconds | 15.45 seconds |
+| Measurement status | Measured | Measured |
+
+These measurements are from the original A/B source-trace tests. Each implementation made one MARA capability call and returned a structured report containing the supporting source ID `INVUPD77`.
+
+**Final renderer verification:** I added deterministic report rendering to prevent the outer agent from rewriting MARA's structured findings and recommendations. Both implementations passed verification. The final runs consumed 9,762 combined tokens for A and 9,726 for B.
+
+**Known limitation — Partial failures:** If a request involves multiple incidents and one investigation fails, the current implementation may return only the successful reports without clearly identifying the failed investigation. I selected Option A as the intended behavior: display successful findings and explicitly warn about the failed investigation. This handling is deferred and has not been implemented or tested.
+
+**10× volume:** At 10× the current request volume, I would expect approximately 10× the total capability calls and token consumption if the average workload remains similar, although actual costs and latency may vary.
+
+## Bring it to work
+
+**Workplace capability:** Mainframe batch incident-history lookup for Production Support. I would use this capability to retrieve relevant historical incidents and supporting evidence for an L1 engineer investigating a batch job abend. MARA is currently a synthetic-data prototype, not an approved internal deployment.
+
+**Data:** In my measured synthetic INVUPD77 test, the structured MARA response was 1,879 bytes with UTCP/FastMCP and 1,662 bytes with Direct Tool Calling. Both implementations made one capability call per request. These are prototype measurements; actual internal incident-history response sizes and call counts have not been measured.
+
+**Model or endpoint:** MARA already exposes a prototype HTTP research API. I would first determine whether an approved internal incident-history API exists and could be reused instead of creating another service. The organization would need to identify the approved service owner and credential holder. I have not verified the internal endpoint or credential arrangement.
+
+**Access or approval:** Before connecting MARA to internal incident information, I would need approval from Security, Enterprise Architecture, and the appropriate application/data owners. This would include confirming an approved deployment environment, authentication, credential management, and restrictions on sending company data outside the organization.
+
+**Measured Step 5 tokens:** Implementation A (UTCP/FastMCP) used 9,242 combined tokens; Implementation B (Direct Tool Calling) used 9,257 combined tokens for the synthetic INVUPD77 investigation. Both used one capability call. These measurements are from the original source-trace tests.

@@ -1,0 +1,48 @@
+{
+  "implementation": "B",
+  "question": "Why did INVUPD77 fail with S0C7?",
+  "answer": "## Root Cause: S0C7 Data Exception in INVUPD77\n\n**What happened:**\nJob **INVUPD77** abended with **S0C7** in **STEP0050**, which executes program **INVADJPG**.\n\n**Why it happened:**\nThe program was reading the input file **INV.ADJUST.DAILY** and hit a corrupt numeric field at **record position 88**:\n\n- **Field:** `QUANTITY_ADJ`\n- **Defined as:** `PIC S9(4)` \u2014 a signed numeric DISPLAY field\n- **Actual value found:** `00-1B`\n\nThe field definition requires strictly numeric (0-9) digits with a valid sign, but the record contains an embedded alphabetic character (**'B'**) in place of a digit. When COBOL attempted to perform arithmetic/numeric processing on this field, the invalid bit pattern triggered the data exception (S0C7).\n\n**Confidence:** HIGH \u2014 the JES abend evidence, the application-level diagnostic pinpointing the exact record/field, and the COBOL copybook definition all independently confirm the same cause.\n\n---\n\n### Recommended Next Steps\n1. **Preserve evidence** \u2014 the failing step, program, input file, record position (88), field name, and invalid value (`00-1B`) should be documented/retained for the fix record.\n2. **Escalate to the application SME** for `INV.ADJUST.DAILY` / `INVADJPG` to determine:\n   - How the bad data got into the file upstream (likely an extract/transmission issue or improper source formatting).\n   - Whether the record should be corrected, defaulted, or excluded.\n3. **Get business sign-off** on the correction/bypass approach \u2014 this affects inventory adjustment data, so impact assessment matters before resuming.\n4. **Coordinate restart with Operations** once the fix is approved, including appropriate checkpoint/restart handling for STEP0050.\n5. **Run data-integrity checks** after the fix to ensure no other records in the file have similar corruption.\n6. **Document the incident and resolution** for audit/trend tracking (recurring S0C7s on this field may indicate a systemic upstream data quality issue worth a permanent fix, such as added validation before the file reaches INVADJPG).",
+  "raw_reports": [
+    {
+      "failure_summary": "Batch job INVUPD77 failed with S0C7 in STEP0050 while program INVADJPG was processing invalid numeric data.",
+      "probable_root_cause": "Record position 88 in input file INV.ADJUST.DAILY contains invalid numeric value 00-1B in field QUANTITY_ADJ, which is defined as PIC S9(4), a signed numeric DISPLAY field. The embedded alphabetic character 'B' does not conform to the field definition, causing a data exception.",
+      "evidence_and_historical_findings": [
+        "Synthetic JES diagnostic identifies S0C7 in STEP0050, program INVADJPG (INVUPD77).",
+        "Synthetic application diagnostic identifies INV.ADJUST.DAILY, record position 88, field QUANTITY_ADJ containing the invalid value 00-1B (INVUPD77).",
+        "Synthetic COBOL field definition confirms QUANTITY_ADJ is PIC S9(4), requiring signed numeric data, and the supplied value contains a non-numeric character (INVUPD77).",
+        "The evidence is self-contained within INVUPD77 and does not reference or depend on findings from other incidents."
+      ],
+      "confidence_level": "HIGH",
+      "recommended_next_steps": [
+        "Verify and preserve the failing step, program, diagnostic evidence, input file, record position, field, and invalid value.",
+        "Escalate the identified record and supporting evidence to the application SME.",
+        "Have the application SME assess business impact and determine whether correction or bypass is appropriate.",
+        "After required authorization, coordinate recovery with responsible personnel and Operations, including restart and data-integrity checks.",
+        "Document the investigation and approved resolution in the incident record."
+      ],
+      "investigation_status": "COMPLETED_RESEARCH",
+      "sources": [
+        "INVUPD77"
+      ]
+    }
+  ],
+  "tool_messages": [
+    {
+      "tool_name": "research_mara",
+      "tool_call_id": "toolu_01TbhfUQJpdw3bS81bRS5Ds3",
+      "content": "{\"status\": \"success\", \"result\": \"{\\\"failure_summary\\\": \\\"Batch job INVUPD77 failed with S0C7 in STEP0050 while program INVADJPG was processing invalid numeric data.\\\", \\\"probable_root_cause\\\": \\\"Record position 88 in input file INV.ADJUST.DAILY contains invalid numeric value 00-1B in field QUANTITY_ADJ, which is defined as PIC S9(4), a signed numeric DISPLAY field. The embedded alphabetic character 'B' does not conform to the field definition, causing a data exception.\\\", \\\"evidence_and_historical_findings\\\": [\\\"Synthetic JES diagnostic identifies S0C7 in STEP0050, program INVADJPG (INVUPD77).\\\", \\\"Synthetic application diagnostic identifies INV.ADJUST.DAILY, record position 88, field QUANTITY_ADJ containing the invalid value 00-1B (INVUPD77).\\\", \\\"Synthetic COBOL field definition confirms QUANTITY_ADJ is PIC S9(4), requiring signed numeric data, and the supplied value contains a non-numeric character (INVUPD77).\\\", \\\"The evidence is self-contained within INVUPD77 and does not reference or depend on findings from other incidents.\\\"], \\\"confidence_level\\\": \\\"HIGH\\\", \\\"recommended_next_steps\\\": [\\\"Verify and preserve the failing step, program, diagnostic evidence, input file, record position, field, and invalid value.\\\", \\\"Escalate the identified record and supporting evidence to the application SME.\\\", \\\"Have the application SME assess business impact and determine whether correction or bypass is appropriate.\\\", \\\"After required authorization, coordinate recovery with responsible personnel and Operations, including restart and data-integrity checks.\\\", \\\"Document the investigation and approved resolution in the incident record.\\\"], \\\"investigation_status\\\": \\\"COMPLETED_RESEARCH\\\", \\\"sources\\\": [\\\"INVUPD77\\\"]}\"}"
+    }
+  ],
+  "outer_model_calls": 2,
+  "internal_model_calls": 1,
+  "capability_calls": 1,
+  "first_turn_tool_calls": 1,
+  "outer_input_tokens": 1798,
+  "outer_output_tokens": 869,
+  "internal_input_tokens": 5927,
+  "internal_output_tokens": 663,
+  "combined_tokens": 9257,
+  "wall_time_seconds": 15.45,
+  "answer_bytes": 2050,
+  "capability_response_bytes": 1662
+}

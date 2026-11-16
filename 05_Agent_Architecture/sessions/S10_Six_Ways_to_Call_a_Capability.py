@@ -791,7 +791,7 @@ def _(mo):
     arguments that do not parse — and which of the five rows in the table
     above would a user of your app meet first?
 
-    **Answer:**
+    **Answer:** MARA currently uses Gradio API endpoints, not an MCP-based tool-calling loop. The batch-abend endpoint validates inputs using Pydantic, but the incident-history endpoint parses the LLM's JSON response without handling parsing errors. Of the five failure scenarios, malformed JSON is the one I would investigate first because it could cause the request to fail instead of returning a controlled error.
 
     ---
     ## ✅ Task 2: Way 2, a skill, and Way 3, a subagent
@@ -883,7 +883,8 @@ def _(CFG, SKILLS_DIR, SKILL_BODY, json, litellm, mo, subprocess, sys, time):
         except (IndexError, KeyError, ValueError, TypeError):
             services = [question]
         results = [json.dumps(run_skill(str(service))) for service in services]
-        final = litellm.completion(**CFG.without_server_tools(CFG.kwargs()), timeout=600, messages=[
+        # final = litellm.completion(**CFG.without_server_tools(CFG.kwargs()), timeout=600, messages=[
+        final = litellm.completion(**CFG.kwargs(), timeout=600, messages=[
             {"role": "system", "content": SKILL_BODY},
             {"role": "user", "content": f"{question}\n\nLookup results:\n" + "\n".join(results)}])
         if meter:
@@ -927,7 +928,8 @@ def _(CFG, Client, FastMCP, ONCALL, json, litellm):
         @desk.tool
         def ask_oncall_desk(question: str) -> str:
             """Ask the on-call desk a question in plain words; get back only the answer."""
-            reply = litellm.completion(**CFG.without_server_tools(CFG.kwargs()), timeout=600, messages=[
+            # reply = litellm.completion(**CFG.without_server_tools(CFG.kwargs()), timeout=600, messages=[
+            reply = litellm.completion(**CFG.kwargs(), timeout=600, messages=[
                 {"role": "system", "content":
                  "You answer on-call questions from this table and nothing else. Name the team and the "
                  f"channel for each service asked about. If a service is not listed, say so.\n\n{json.dumps(ONCALL, indent=2)}"},
@@ -1113,7 +1115,7 @@ def _(mo):
     category — and if the honest answer is nobody, what does an MCP server buy
     you that a tool does not?
 
-    **Answer:**
+    **Answer:** Right now, I have not identified an external MCP client that needs to discover MARA. MARA already exposes its research capability through a Gradio API. An MCP server could make that capability discoverable by other MCP clients in the future, but without a confirmed consumer, it would add deployment and maintenance overhead without a demonstrated benefit.
 
     ---
     ## ✅ Task 4: Way 5, Code Mode, and Way 6, an API that already exists
@@ -1568,7 +1570,9 @@ def _(mo):
     how many calls does one request need? Put those two numbers on the slope
     above and say which architecture's token bill you are actually paying.
 
-    **Answer:**
+    **Answer:** In TC3, I measured an average of **2.1 retrieval calls per question** for MARA's DCI approach, with approximately **5,344 characters read per question**. That works out to roughly **2,545 characters per call**, or about 2.5 KB if the content is mostly single-byte text. This is an estimate, not a measured response size in bytes.
+
+    Based on the S10 experiment, MARA's current retrieval approach is closer to the Tool architecture, where retrieved evidence enters the model's context and token usage grows with the amount of data returned. Code Mode could reduce that overhead if MARA needed to process larger retrieval results, but I have not tested that architecture with MARA.
 
     ---
     ## ✅ Task 6: The comparison, and Sofia's page for the board
@@ -1665,7 +1669,9 @@ def _(mo):
     condition — a second client, a response size, a call count, a review
     passing — under which you would switch to it?
 
-    **Answer:**
+    **Answer:** For MARA, my first "yes" is Question 1 because MARA already exposes HTTP APIs. Based on the instructor's decision framework, I would consider UTCP first. This decision does not depend on whether the endpoint performs retrieval.
+
+    I plan to enhance the original MARA UI with a free-text question box that calls the existing incident-history research endpoint. I would consider adopting UTCP when other authorized AI agents or applications need to access MARA's capabilities through a standardized tool interface. For now, direct HTTP calls are sufficient. I may evaluate MCP later if tool discovery and sharing become requirements.
 
     ---
     ## 🏗️ By the End of the Sesh
