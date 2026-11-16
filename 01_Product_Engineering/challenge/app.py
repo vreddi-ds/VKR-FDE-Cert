@@ -76,8 +76,13 @@ def research_mainframe_batch_abend(
     # Convert the validated Pydantic Response to a JSON string.
     return report.model_dump_json()
 
+# @app.api(name="research_mainframe_incident_history")
+# def research_mainframe_incident_history(question: str) -> str:
 @app.api(name="research_mainframe_incident_history")
-def research_mainframe_incident_history(question: str) -> str:
+def research_mainframe_incident_history(
+    question: str,
+    include_usage: bool = False,
+) -> str:
     """
     Research a mainframe batch incident question using historical evidence.
     Use this tool when investigating past mainframe batch failures, comparing
@@ -161,6 +166,27 @@ def research_mainframe_incident_history(question: str) -> str:
         max_tokens=2500,
         timeout=600,
     )
+    # Record token usage for the internal MARA Claude call.
+    usage = getattr(response, "usage", None)
+
+    if usage is not None:
+        print(
+            "MARA TC3 input tokens:",
+            usage.prompt_tokens,
+            flush=True,
+        )
+        print(
+            "MARA TC3 output tokens:",
+            usage.completion_tokens,
+            flush=True,
+        )
+        print(
+            "MARA TC3 total tokens:",
+            usage.total_tokens,
+            flush=True,
+        )
+    else:
+        print("MARA TC3 token usage unavailable", flush=True)
 
     answer_text = response.choices[0].message.content or ""
 
@@ -197,7 +223,22 @@ def research_mainframe_incident_history(question: str) -> str:
 
     report = Response.model_validate(response_data)
 
-    return report.model_dump_json()
+    # Preserve the original response for existing callers.
+    if not include_usage:
+        return report.model_dump_json()
+
+    # Return the investigation and internal Claude usage together.
+    usage = getattr(response, "usage", None)
+
+    # return report.model_dump_json()
+    return json.dumps({
+        "report": report.model_dump(),
+        "usage": {
+            "input_tokens": getattr(usage, "prompt_tokens", None),
+            "output_tokens": getattr(usage, "completion_tokens", None),
+            "total_tokens": getattr(usage, "total_tokens", None),
+        },
+    })
 
 # --- The frontend ------------------------------------------------------------
 # Defining a route at "/" replaces Gradio's default UI with ours.
